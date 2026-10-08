@@ -1,6 +1,7 @@
 dist/
 .deps/
 tmp/
+tools/probe-bin/
 src/**/bin/
 src/**/obj/
 bundle/**/Contents/

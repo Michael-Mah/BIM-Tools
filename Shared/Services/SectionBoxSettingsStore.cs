@@ -179,9 +179,7 @@ namespace BIM.Tools.Services
             }
 
             return Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "Smart Build Technology",
-                EditionBrand.ProductName,
+                EditionBrand.SettingsRoot,
                 "SectionBox",
                 name + ".xml");
         }

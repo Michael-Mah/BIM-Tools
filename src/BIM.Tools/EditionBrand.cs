@@ -1,9 +1,12 @@
 using System.Drawing;
+using System;
+using System.IO;
 namespace BIM.Tools
 {
     internal static class EditionBrand
     {
         internal const string ProductName="BIM Tools";
+        internal static readonly string SettingsRoot=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"BIM-Tools");
         internal const string CompanyName="BIM";
         internal const string StorageFolder="BIM-Tools";
         internal const string ViewpointPrefix="[BIM]";

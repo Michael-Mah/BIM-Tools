@@ -9,6 +9,6 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyCopyright("Copyright © Michael-Mah 2026")]
 [assembly: ComVisible(false)]
 [assembly: InternalsVisibleTo("BIM.CompatibilityProbes")]
-[assembly: Guid("A5BE849F-2BA3-4C9E-A339-E79D8D94DE2C")]
+[assembly: Guid("7C693B8B-4635-4F20-A725-A065396C5B61")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]

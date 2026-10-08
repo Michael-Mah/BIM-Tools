@@ -1,1 +1,12 @@
+# UTF8 ribbon localization
+$utf8
+DisplayName=
 BIM Tools
+BIM_OPEN_SECTION_BOX.DisplayName=
+Section Box
+BIM_OPEN_SECTION_BOX.ToolTip=
+Build and save a Section Box from Level and Grid data.
+BIM_OPEN_MODEL_SHARING.DisplayName=
+Model Sharing
+BIM_OPEN_MODEL_SHARING.ToolTip=
+Share permanently clipped geometry as OBJ, IFC4, NWC or NWD.

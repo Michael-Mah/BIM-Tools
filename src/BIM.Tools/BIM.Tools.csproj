@@ -5,7 +5,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
-    <ProjectGuid>{D3A1CE55-DA23-4B69-90C0-8BE40E4A89F5}</ProjectGuid>
+    <ProjectGuid>{1D7CE81E-C4D8-4C4A-BD21-7D5F6ED8A19B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>BIM.Tools</RootNamespace>
     <AssemblyName>BIM.Tools</AssemblyName>
