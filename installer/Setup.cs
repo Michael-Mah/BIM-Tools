@@ -54,7 +54,7 @@ namespace BimTools.Setup
             Panel header = new Panel();
             header.Dock = DockStyle.Top;
             header.Height = 86;
-            header.BackColor = Color.FromArgb(13, 67, 52);
+            header.BackColor = Color.FromArgb(18, 61, 115);
 
             Label logo = new Label();
             logo.Text = "BIM Tools";
@@ -125,7 +125,7 @@ namespace BimTools.Setup
             _installButton.Text = "安装";
             _installButton.FlatStyle = FlatStyle.Flat;
             _installButton.FlatAppearance.BorderSize = 0;
-            _installButton.BackColor = Color.FromArgb(13, 67, 52);
+            _installButton.BackColor = Color.FromArgb(18, 61, 115);
             _installButton.ForeColor = Color.White;
             _installButton.Font = new Font("Microsoft YaHei UI", 9F, FontStyle.Bold);
             _installButton.Location = new Point(326, 280);
