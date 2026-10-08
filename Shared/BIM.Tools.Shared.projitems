@@ -1,0 +1,33 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Models\SectionBoxDatum.cs"><Link>Shared\Models\SectionBoxDatum.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Models\SectionBoxScope.cs"><Link>Shared\Models\SectionBoxScope.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Models\SharingExportProgress.cs"><Link>Shared\Models\SharingExportProgress.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Models\SharingProgress.cs"><Link>Shared\Models\SharingProgress.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Services\BoxGeometryClipper.cs"><Link>Shared\Services\BoxGeometryClipper.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Services\DatumSectionBoxService.cs"><Link>Shared\Services\DatumSectionBoxService.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Services\IScopedGeometryWriter.cs"><Link>Shared\Services\IScopedGeometryWriter.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Services\ModelNameNormalizer.cs"><Link>Shared\Services\ModelNameNormalizer.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SavedBoxViewpoints.cs"><Link>Shared\Services\SavedBoxViewpoints.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Services\ScopedIfcWriter.cs"><Link>Shared\Services\ScopedIfcWriter.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Services\ScopedModelSharingService.cs"><Link>Shared\Services\ScopedModelSharingService.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Services\ScopedObjWriter.cs"><Link>Shared\Services\ScopedObjWriter.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SectionBoxSettingsStore.cs"><Link>Shared\Services\SectionBoxSettingsStore.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SectionBoxWorkspaceService.cs"><Link>Shared\Services\SectionBoxWorkspaceService.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SharingContentCache.cs"><Link>Shared\Services\SharingContentCache.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SharingExportEstimate.cs"><Link>Shared\Services\SharingExportEstimate.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SharingModelDiscovery.cs"><Link>Shared\Services\SharingModelDiscovery.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Services\SharingNativeTiming.cs"><Link>Shared\Services\SharingNativeTiming.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)UI\BimDialog.cs"><Link>Shared\UI\BimDialog.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)UI\BimTheme.cs"><Link>Shared\UI\BimTheme.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)UI\BimWindowLayout.cs"><Link>Shared\UI\BimWindowLayout.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)UI\ExportEstimateForm.cs"><Link>Shared\UI\ExportEstimateForm.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)UI\SavedBoxPickerForm.cs"><Link>Shared\UI\SavedBoxPickerForm.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)UI\ScopedModelSharingForm.cs"><Link>Shared\UI\ScopedModelSharingForm.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)UI\ScopedModelSharingWindow.cs"><Link>Shared\UI\ScopedModelSharingWindow.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)UI\SectionBoxBuilderForm.cs"><Link>Shared\UI\SectionBoxBuilderForm.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)UI\SectionBoxBuilderWindow.cs"><Link>Shared\UI\SectionBoxBuilderWindow.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)UI\SharingElementsForm.cs"><Link>Shared\UI\SharingElementsForm.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)UI\SharingProgressForm.cs"><Link>Shared\UI\SharingProgressForm.cs</Link></Compile>
+  </ItemGroup>
+</Project>

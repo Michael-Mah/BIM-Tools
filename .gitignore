@@ -1,0 +1,15 @@
+dist/
+.deps/
+tmp/
+src/**/bin/
+src/**/obj/
+bundle/**/Contents/
+*.nwd
+*.nwf
+*.nwc
+*.ifc
+*.obj
+*.mtl
+.env*
+*.pfx
+*.key

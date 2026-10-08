@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.props" Condition="Exists('$(MSBuildToolsPath)\Microsoft.Common.props')" />
+
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
+    <ProjectGuid>{D3A1CE55-DA23-4B69-90C0-8BE40E4A89F5}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>BIM.Tools</RootNamespace>
+    <AssemblyName>BIM.Tools</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <!-- The workstation currently has the .NET Framework 4.8 runtime compiler,
+         whose in-box C# front-end supports C# 5. Keep the scaffold compatible
+         until the 4.8 Developer Pack / modern Visual Studio Build Tools is installed. -->
+    <LangVersion>5</LangVersion>
+    <NavisworksVersion Condition=" '$(NavisworksVersion)' == '' ">2026</NavisworksVersion>
+    <NavisworksInstallDir Condition=" '$(NavisworksInstallDir)' == '' ">C:\Program Files\Autodesk\Navisworks Manage $(NavisworksVersion)</NavisworksInstallDir>
+    <BundleContentsDir>$(MSBuildProjectDirectory)\..\..\bundle\BIM.Tools.bundle\Contents\$(NavisworksVersion)</BundleContentsDir>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\x64\Debug\$(NavisworksVersion)\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\x64\Release\$(NavisworksVersion)\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IntermediateOutputPath>obj\x64\$(Configuration)\$(NavisworksVersion)\</IntermediateOutputPath>
+    <DefineConstants>$(DefineConstants);NAVISWORKS$(NavisworksVersion)</DefineConstants>
+    <NavisworksApiMajor Condition="'$(NavisworksVersion)' == '2024'">21</NavisworksApiMajor>
+    <NavisworksApiMajor Condition="'$(NavisworksVersion)' == '2025'">22</NavisworksApiMajor>
+    <NavisworksApiMajor Condition="'$(NavisworksVersion)' == '2026'">23</NavisworksApiMajor>
+    <NavisworksApiMajor Condition="'$(NavisworksVersion)' == '2027'">24</NavisworksApiMajor>
+    <TargetFrameworkRootPath Condition="'$(FrameworkReferenceRoot)' != ''">$(FrameworkReferenceRoot)</TargetFrameworkRootPath>
+    <EnableFrameworkPathOverride Condition="'$(FrameworkReferenceRoot)' != ''">false</EnableFrameworkPathOverride>
+    <NoStdLib Condition="'$(FrameworkReferenceRoot)' != ''">true</NoStdLib>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="mscorlib" Condition="'$(FrameworkReferenceRoot)' != ''" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Autodesk.Navisworks.Api">
+      <HintPath>$(NavisworksInstallDir)\Autodesk.Navisworks.Api.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Autodesk.Navisworks.Clash">
+      <HintPath>$(NavisworksInstallDir)\Autodesk.Navisworks.Clash.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Autodesk.Navisworks.ComApi">
+      <HintPath>$(NavisworksInstallDir)\Autodesk.Navisworks.ComApi.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Autodesk.Navisworks.Interop.ComApi">
+      <HintPath>$(NavisworksInstallDir)\Autodesk.Navisworks.Interop.ComApi.dll</HintPath>
+      <Private>false</Private>
+      <EmbedInteropTypes>false</EmbedInteropTypes>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup><Compile Include="Plugin\BimToolsPlugin.cs" /><Compile Include="EditionBrand.cs" /><Compile Include="Properties\AssemblyInfo.cs" /></ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Ribbon\Images\BimModelSharing64.png"><LogicalName>BIM.ModelSharingIcon</LogicalName></EmbeddedResource>
+    <None Include="Ribbon\BimToolsRibbon.xaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Ribbon\BimToolsRibbon.name">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Ribbon\Images\BimTools16.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Ribbon\Images\BimTools32.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Ribbon\Images\BimSectionBox16.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Ribbon\Images\BimSectionBox32.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Ribbon\Images\BimSectionBox.svg" />
+    <None Include="Ribbon\Images\BimBuildingMark.png" />
+    <None Include="Ribbon\Images\BimModelSharing16.png"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Ribbon\Images\BimModelSharing32.png"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Ribbon\Images\BimModelSharing64.png"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+  </ItemGroup>
+
+  <Target Name="ValidateNavisworksReferences" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="'$(NavisworksApiMajor)' == ''"
+           Text="Supported Navisworks versions are 2024, 2025, 2026 and 2027." />
+    <Error Condition="!Exists('$(NavisworksInstallDir)\Autodesk.Navisworks.Api.dll')"
+           Text="Autodesk.Navisworks.Api.dll was not found under $(NavisworksInstallDir). Set /p:NavisworksInstallDir=... to the correct Navisworks Manage installation." />
+    <Error Condition="!Exists('$(NavisworksInstallDir)\Autodesk.Navisworks.Clash.dll')"
+           Text="Autodesk.Navisworks.Clash.dll was not found under $(NavisworksInstallDir). Navisworks Manage (not Freedom) is required." />
+    <Error Condition="!Exists('$(NavisworksInstallDir)\Autodesk.Navisworks.ComApi.dll') Or !Exists('$(NavisworksInstallDir)\Autodesk.Navisworks.Interop.ComApi.dll')"
+           Text="The matching Navisworks COM API assemblies are required for scoped geometry export." />
+    <GetAssemblyIdentity AssemblyFiles="$(NavisworksInstallDir)\Autodesk.Navisworks.Api.dll;$(NavisworksInstallDir)\Autodesk.Navisworks.Clash.dll;$(NavisworksInstallDir)\Autodesk.Navisworks.ComApi.dll;$(NavisworksInstallDir)\Autodesk.Navisworks.Interop.ComApi.dll">
+      <Output TaskParameter="Assemblies" ItemName="NavisworksReferenceIdentity" />
+    </GetAssemblyIdentity>
+    <Error Condition="'%(NavisworksReferenceIdentity.Version)' != '$(NavisworksApiMajor).0.0.0'"
+           Text="%(NavisworksReferenceIdentity.Name) has API version %(NavisworksReferenceIdentity.Version); Navisworks $(NavisworksVersion) requires $(NavisworksApiMajor).0.0.0. Use the matching year's Autodesk assemblies." />
+  </Target>
+
+  <Target Name="CopyToBundle" AfterTargets="Build">
+    <ItemGroup><SharingIcons Include="$(MSBuildProjectDirectory)\Ribbon\Images\BimModelSharing*.png" /></ItemGroup>
+    <MakeDir Directories="$(BundleContentsDir)" />
+    <MakeDir Directories="$(BundleContentsDir)\en-US" />
+    <MakeDir Directories="$(BundleContentsDir)\Images" />
+    <MakeDir Directories="$(BundleContentsDir)\en-US\Images" />
+    <Copy SourceFiles="@(SharingIcons)" DestinationFolder="$(BundleContentsDir)\Images" />
+    <Copy SourceFiles="@(SharingIcons)" DestinationFolder="$(BundleContentsDir)\en-US\Images" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(BundleContentsDir)" />
+    <Copy SourceFiles="$(TargetDir)$(TargetName).pdb"
+          DestinationFolder="$(BundleContentsDir)"
+          Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\Ribbon\BimToolsRibbon.xaml"
+          DestinationFolder="$(BundleContentsDir)" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\Ribbon\BimToolsRibbon.xaml"
+          DestinationFolder="$(BundleContentsDir)\en-US" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\Ribbon\BimToolsRibbon.name"
+          DestinationFolder="$(BundleContentsDir)" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\Ribbon\BimToolsRibbon.name"
+          DestinationFolder="$(BundleContentsDir)\en-US" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\Ribbon\Images\BimTools16.png;$(MSBuildProjectDirectory)\Ribbon\Images\BimTools32.png;$(MSBuildProjectDirectory)\Ribbon\Images\BimSectionBox16.png;$(MSBuildProjectDirectory)\Ribbon\Images\BimSectionBox32.png"
+          DestinationFolder="$(BundleContentsDir)\Images" />
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\Ribbon\Images\BimTools16.png;$(MSBuildProjectDirectory)\Ribbon\Images\BimTools32.png;$(MSBuildProjectDirectory)\Ribbon\Images\BimSectionBox16.png;$(MSBuildProjectDirectory)\Ribbon\Images\BimSectionBox32.png"
+          DestinationFolder="$(BundleContentsDir)\en-US\Images" />
+  </Target>
+
+  <Import Project="..\..\Shared\BIM.Tools.Shared.projitems" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

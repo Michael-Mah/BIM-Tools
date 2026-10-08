@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ApplicationPackage SchemaVersion="1.0"
+                    AutodeskProduct="Navisworks"
+                    Name="BIM Tools"
+                    Description="Company-neutral Section Box and strict model sharing"
+                    AppVersion="1.0.0"
+                    FriendlyVersion="1.0.0 Navisworks Manage 2024-2027"
+                    ProductType="Application"
+                    SupportedLocales="Enu|Chs"
+                    Author="BIM Tools"
+                    ProductCode="{ED87A0F4-0424-46E6-9B5A-F8FD820A37D8}"
+                    UpgradeCode="{2C675461-9678-49AE-9CDF-9D28EDBF7E6C}">
+  <CompanyDetails Name="BIM Tools" />
+  <Components Description="Navisworks Manage 2024">
+    <RuntimeRequirements OS="Win64" Platform="NAVMAN" SeriesMin="Nw21" SeriesMax="Nw21" />
+    <ComponentEntry AppName="BIM Tools" Version="1.0.0" AppType="ManagedPlugin"
+                    ModuleName="./Contents/2024/BIM.Tools.dll"
+                    AppDescription="Section Box Builder and strict Model Sharing" />
+  </Components>
+  <Components Description="Navisworks Manage 2025">
+    <RuntimeRequirements OS="Win64" Platform="NAVMAN" SeriesMin="Nw22" SeriesMax="Nw22" />
+    <ComponentEntry AppName="BIM Tools" Version="1.0.0" AppType="ManagedPlugin"
+                    ModuleName="./Contents/2025/BIM.Tools.dll"
+                    AppDescription="Section Box Builder and strict Model Sharing" />
+  </Components>
+  <Components Description="Navisworks Manage 2026">
+    <RuntimeRequirements OS="Win64"
+                         Platform="NAVMAN"
+                         SeriesMin="Nw23"
+                         SeriesMax="Nw23" />
+    <ComponentEntry AppName="BIM Tools"
+                    Version="1.0.0"
+                    AppType="ManagedPlugin"
+                    ModuleName="./Contents/2026/BIM.Tools.dll"
+                    AppDescription="Section Box Builder and strict Model Sharing" />
+  </Components>
+  <Components Description="Navisworks Manage 2027">
+    <RuntimeRequirements OS="Win64" Platform="NAVMAN" SeriesMin="Nw24" SeriesMax="Nw24" />
+    <ComponentEntry AppName="BIM Tools" Version="1.0.0" AppType="ManagedPlugin"
+                    ModuleName="./Contents/2027/BIM.Tools.dll"
+                    AppDescription="Section Box Builder and strict Model Sharing" />
+  </Components>
+</ApplicationPackage>
