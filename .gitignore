@@ -2,6 +2,7 @@ dist/
 .deps/
 tmp/
 tools/probe-bin/
+node_modules/
 src/**/bin/
 src/**/obj/
 bundle/**/Contents/

@@ -25,7 +25,7 @@ namespace BIM.Tools.WorkflowProbe
             {
                 Document doc = Autodesk.Navisworks.Api.Application.ActiveDocument;
                 log.AppendLine("Product=" + typeof(ScopedModelSharingForm).Assembly.FullName);
-                if (typeof(ScopedModelSharingForm).Assembly.GetName().Version != new Version("1.0.0.0")) throw new Exception("Wrong product assembly loaded.");
+                if (typeof(ScopedModelSharingForm).Assembly.GetName().Version != new Version("1.0.1.0")) throw new Exception("Wrong product assembly loaded.");
                 bool oldAccessorFailed=false;
                 using(VariantData numericId=VariantData.FromInt32(17449713))
                 {

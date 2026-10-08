@@ -85,7 +85,7 @@ namespace BIM.Tools.SharingProbe
                 bool cancelled = false;
                 try { new ScopedModelSharingService().Export(document, scope, new List<SharingSource> { new SharingSource("ALLOWED", chosen) }, sentinel, () => true, null); }
                 catch (OperationCanceledException) { cancelled = true; }
-                bool cancellationPassed = cancelled && File.ReadAllText(sentinel) == "EXISTING-OUTPUT" && Directory.GetFiles(folder, ".sbt-*.ifc").Length == 0;
+                bool cancellationPassed = cancelled && File.ReadAllText(sentinel) == "EXISTING-OUTPUT" && Directory.GetFiles(folder, ".bim-*.ifc").Length == 0;
                 log.AppendLine("CancellationPreservedExistingFile=" + cancellationPassed);
 
                 log.AppendLine("ExportPassed=" + (sourcePreserved && cancellationPassed && summary.Triangles > 0));

@@ -20,7 +20,7 @@ namespace BIM.Tools.DpiUiProbe
         {
             string outputFolder = parameters != null && parameters.Length > 0
                 ? parameters[0]
-                : Path.Combine(Path.GetTempPath(), "sbt-dpi-ui-probe");
+                : Path.Combine(Path.GetTempPath(), "bim-dpi-ui-probe");
             Directory.CreateDirectory(outputFolder);
 
             StringBuilder report = new StringBuilder();

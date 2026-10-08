@@ -2,7 +2,7 @@
 
 Company-neutral Navisworks **Section Box** and **Model Sharing**, initially built and verified for Manage 2026/2027. 2024/2025 require matching installed hosts and remain skipped.
 
-Download the installer from [1.0.0 Releases](https://github.com/Michael-Mah/BIM-Tools/releases/tag/v1.0.0). See the [usage guide](docs/MODEL-SHARING.md) and [validation record](docs/VALIDATION-1.0.0.md). Close Navisworks before installation.
+Download the installer from [1.0.1 Releases](https://github.com/Michael-Mah/BIM-Tools/releases/tag/v1.0.1). See the [usage guide](docs/MODEL-SHARING.md) and [validation record](docs/VALIDATION-1.0.1.md). Close Navisworks before installation.
 
 `Shared/` is the authoritative source for datum/box geometry, content discovery, clipping, export, estimates and their UI. Products import `Shared/BIM.Tools.Shared.projitems`; each product supplies its own `EditionBrand.cs`. A company edition pins this repository as a Git submodule and retains its company-specific clash engine, model configuration and history in a separate private repository.
 
