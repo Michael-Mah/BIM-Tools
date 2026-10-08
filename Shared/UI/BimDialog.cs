@@ -73,10 +73,7 @@ namespace BIM.Tools.UI
                 footer.BackColor = BimTheme.Paper;
 
                 Label support = new Label();
-                support.Text =
-                    "If the issue persists, contact Smart Build Technology IT Support at " +
-                    "IT@smartbuildtech.com.sg and include the project name, steps performed, " +
-                    "and an error screenshot.";
+                support.Text = EditionBrand.SupportMessage;
                 support.Font = new Font("Segoe UI", 7.5F);
                 support.ForeColor = BimTheme.Muted;
                 support.Location = new Point(18, 8);
