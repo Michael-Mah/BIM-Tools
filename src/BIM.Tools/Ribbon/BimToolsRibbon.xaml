@@ -3,6 +3,7 @@
     <RibbonPanel><RibbonPanelSource Title="Coordination">
       <local:NWRibbonButton Id="BIM_OPEN_SECTION_BOX" Size="Large" ShowText="True" Text="Section&#xD;&#xA;Box" Image="Images/BimSectionBox16.png" LargeImage="Images/BimSectionBox32.png" Orientation="Vertical" />
       <local:NWRibbonButton Id="BIM_OPEN_MODEL_SHARING" Size="Large" ShowText="True" Text="Model&#xD;&#xA;Sharing" Image="Images/BimModelSharing16.png" LargeImage="Images/BimModelSharing32.png" Orientation="Vertical" />
+      <local:NWRibbonButton Id="BIM_OPEN_CLASH_SETUP" Size="Large" ShowText="True" Text="Clash&#xD;&#xA;Setup" Image="Images/BimClash16.png" LargeImage="Images/BimClash32.png" Orientation="Vertical" />
     </RibbonPanelSource></RibbonPanel>
   </RibbonTab>
 </RibbonControl>

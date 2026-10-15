@@ -84,6 +84,7 @@
   </ItemGroup>
 
   <ItemGroup><Compile Include="Plugin\BimToolsPlugin.cs" /><Compile Include="EditionBrand.cs" /><Compile Include="Properties\AssemblyInfo.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="Clash\*.cs" /></ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Ribbon\Images\BimModelSharing64.png"><LogicalName>BIM.ModelSharingIcon</LogicalName></EmbeddedResource>
@@ -105,7 +106,12 @@
     <None Include="Ribbon\Images\BimSectionBox32.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Ribbon\Images\BimSectionBox64.png"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Ribbon\Images\BimSectionBox.svg" />
+    <None Include="Ribbon\Images\BimClash.svg" />
+    <None Include="Ribbon\Images\BimClash16.png"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Ribbon\Images\BimClash32.png"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Ribbon\Images\BimClash64.png"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Ribbon\Images\BimBuildingMark.png" />
     <None Include="Ribbon\Images\BimModelSharing16.png"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Ribbon\Images\BimModelSharing32.png"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
@@ -129,13 +135,13 @@
   </Target>
 
   <Target Name="CopyToBundle" AfterTargets="Build">
-    <ItemGroup><SharingIcons Include="$(MSBuildProjectDirectory)\Ribbon\Images\BimModelSharing*.png" /></ItemGroup>
+    <ItemGroup><RibbonIcons Include="$(MSBuildProjectDirectory)\Ribbon\Images\Bim*.png" /></ItemGroup>
     <MakeDir Directories="$(BundleContentsDir)" />
     <MakeDir Directories="$(BundleContentsDir)\en-US" />
     <MakeDir Directories="$(BundleContentsDir)\Images" />
     <MakeDir Directories="$(BundleContentsDir)\en-US\Images" />
-    <Copy SourceFiles="@(SharingIcons)" DestinationFolder="$(BundleContentsDir)\Images" />
-    <Copy SourceFiles="@(SharingIcons)" DestinationFolder="$(BundleContentsDir)\en-US\Images" />
+    <Copy SourceFiles="@(RibbonIcons)" DestinationFolder="$(BundleContentsDir)\Images" />
+    <Copy SourceFiles="@(RibbonIcons)" DestinationFolder="$(BundleContentsDir)\en-US\Images" />
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(BundleContentsDir)" />
     <Copy SourceFiles="$(TargetDir)$(TargetName).pdb"
           DestinationFolder="$(BundleContentsDir)"
@@ -148,10 +154,6 @@
           DestinationFolder="$(BundleContentsDir)" />
     <Copy SourceFiles="$(MSBuildProjectDirectory)\Ribbon\BimToolsRibbon.name"
           DestinationFolder="$(BundleContentsDir)\en-US" />
-    <Copy SourceFiles="$(MSBuildProjectDirectory)\Ribbon\Images\BimTools16.png;$(MSBuildProjectDirectory)\Ribbon\Images\BimTools32.png;$(MSBuildProjectDirectory)\Ribbon\Images\BimSectionBox16.png;$(MSBuildProjectDirectory)\Ribbon\Images\BimSectionBox32.png"
-          DestinationFolder="$(BundleContentsDir)\Images" />
-    <Copy SourceFiles="$(MSBuildProjectDirectory)\Ribbon\Images\BimTools16.png;$(MSBuildProjectDirectory)\Ribbon\Images\BimTools32.png;$(MSBuildProjectDirectory)\Ribbon\Images\BimSectionBox16.png;$(MSBuildProjectDirectory)\Ribbon\Images\BimSectionBox32.png"
-          DestinationFolder="$(BundleContentsDir)\en-US\Images" />
   </Target>
 
   <Import Project="..\..\Shared\BIM.Tools.Shared.projitems" />

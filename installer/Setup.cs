@@ -11,8 +11,8 @@ using System.Xml;
 [assembly: AssemblyDescription("Installer for version-specific BIM Tools Navisworks Manage add-ins")]
 [assembly: AssemblyCompany("BIM Tools")]
 [assembly: AssemblyProduct("BIM Tools")]
-[assembly: AssemblyVersion("1.0.1.0")]
-[assembly: AssemblyFileVersion("1.0.1.0")]
+[assembly: AssemblyVersion("1.1.1.0")]
+[assembly: AssemblyFileVersion("1.1.1.0")]
 
 namespace BimTools.Setup
 {
@@ -29,7 +29,7 @@ namespace BimTools.Setup
 
     internal sealed class SetupForm : Form
     {
-        private const string SetupVersion = "1.0.1";
+        private const string SetupVersion = "1.1.1";
         private const string ResourceName = "BIM.Tools.Bundle.zip";
         private readonly Button _installButton;
         private readonly Button _closeButton;
@@ -276,7 +276,8 @@ namespace BimTools.Setup
                 foreach (string file in new[] {
                     "BIM.Tools.dll", "BimToolsRibbon.xaml", "BimToolsRibbon.name",
                     "Images/BimTools16.png", "Images/BimTools32.png",
-                    "Images/BimSectionBox16.png", "Images/BimSectionBox32.png" })
+                    "Images/BimSectionBox16.png", "Images/BimSectionBox32.png",
+                    "Images/BimClash16.png", "Images/BimClash32.png" })
                 {
                     if (!File.Exists(Path.Combine(contents, file)))
                     {
