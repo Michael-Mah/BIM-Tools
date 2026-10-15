@@ -43,6 +43,11 @@ namespace BIM.Tools.Models
 
         public string RawJson { get; private set; }
 
+        // A saved clash setup can reconstruct its scope without changing the
+        // user's active clipping planes or viewpoint.
+        internal static SectionBoxScope FromBox(Point3D minimum, Point3D maximum, Rotation3D rotation, string rawJson)
+        { return new SectionBoxScope(minimum, maximum, rotation, rawJson); }
+
         public static bool TryRead(View view, out SectionBoxScope scope, out string reason)
         {
             scope = null;

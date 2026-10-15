@@ -1,0 +1,19 @@
+{
+  "generator": "Built-in image_gen",
+  "generatedOn": "2026-10-13",
+  "transparent_background": true,
+  "prompts": [
+    {
+      "name": "BimSectionBox",
+      "prompt": "Use case: logo-brand. Asset type: a single production Navisworks ribbon toolbar icon for the company-neutral BIM Tools plugin. Design a bold, exceptionally simple, premium engineering software pictogram. Square image with a truly transparent background. Compact centered composition fills 82% of the canvas; large solid shapes, few details, clean sharp edges, no hairline strokes. Slight isometric view, flat vector-like illustration with three blue tonal faces. Palette cobalt blue #1769D2, deep navy #123D73, pale cyan #B7E4FF. Must remain readable at 16 and 32 pixels. No letters, no words, no numbers, no watermark, no background tile, no drop shadow, no green. Subject: one cobalt blue solid cube intersected by a single pale cyan horizontal cutting plane, with four strong deep blue corner brackets suggesting a cropping section box. The cube and cutting plane form one bold silhouette. Avoid intricate wireframes or grids."
+    },
+    {
+      "name": "BimModelSharing",
+      "prompt": "Use case: logo-brand. Asset type: a single production Navisworks ribbon toolbar icon for the company-neutral BIM Tools plugin. Design a bold, exceptionally simple, premium engineering software pictogram. Square image with a truly transparent background. Compact centered composition fills 82% of the canvas; large solid shapes, few details, clean sharp edges, no hairline strokes. Slight isometric view, flat vector-like illustration with three blue tonal faces. Palette cobalt blue #1769D2, deep navy #123D73, pale cyan #B7E4FF. Must remain readable at 16 and 32 pixels. No letters, no words, no numbers, no watermark, no background tile, no drop shadow, no green. Subject: one solid cobalt blue miniature 3D model cube with a broad pale cyan export arrow pointing to the upper right, emerging from the cube. Arrow is the clear dominant secondary symbol. One cube plus one arrow only; no networks, circular rings or fine architectural windows."
+    },
+    {
+      "name": "BimClash",
+      "prompt": "Use case: logo-brand. Asset type: a single production Navisworks ribbon toolbar icon for the company-neutral BIM Tools plugin. Design a bold, exceptionally simple, premium engineering software pictogram. Square image with a truly transparent background. Compact centered composition fills 82% of the canvas; large solid shapes, few details, clean sharp edges, no hairline strokes. Slight isometric view, flat vector-like illustration with three blue tonal faces. Palette cobalt blue #1769D2, deep navy #123D73, pale cyan #B7E4FF. Must remain readable at 16 and 32 pixels. No letters, no words, no numbers, no watermark, no background tile, no drop shadow, no green. Subject: two bold interpenetrating isometric cubes, one deep cobalt blue and one light blue, with a single compact orange diamond #FFAD28 at their intersection indicating a clash. The cubes overlap clearly, not separated. Flat faceted shapes; no starburst, no exclamation, no outlines around every facet."
+    }
+  ]
+}

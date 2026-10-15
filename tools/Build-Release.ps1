@@ -10,6 +10,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
+& (Join-Path $PSScriptRoot 'Test-RibbonAssets.ps1') -RibbonRoots (Join-Path $repoRoot 'src/BIM.Tools/Ribbon')
 $Versions = @($Versions | Sort-Object -Unique)
 if ($Versions.Count -eq 0) { throw 'Select at least one Navisworks version.' }
 if (-not (Test-Path -LiteralPath $MSBuildPath)) { throw "MSBuild not found: $MSBuildPath" }
@@ -90,6 +91,11 @@ foreach ($year in $Versions) {
     Copy-Item -LiteralPath (Join-Path $repoRoot "bundle/BIM.Tools.bundle/Contents/$year") -Destination (Join-Path $packageFolder 'Contents') -Recurse
 }
 $manifest.Save((Join-Path $packageFolder 'PackageContents.xml'))
+$ribbonRoots = foreach ($year in $Versions) {
+    Join-Path $packageFolder "Contents/$year"
+    Join-Path $packageFolder "Contents/$year/en-US"
+}
+& (Join-Path $PSScriptRoot 'Test-RibbonAssets.ps1') -RibbonRoots $ribbonRoots
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $payloadZip = Join-Path $distributionDir 'bundle-payload.zip'
