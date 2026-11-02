@@ -13,7 +13,9 @@ Validated on 2026-11-02 against the installed Manage 2026 and 2027 APIs. Federat
 
 ## Installation
 
-The 1.2.1 package is staged for a local update. Installation is waiting for the user's running Navisworks session to close; its installed 1.2.0 bundle has not been replaced. The updater checks for running Navisworks processes, backs up the existing bundle, verifies copied files and restores the previous bundle if replacement fails.
+Installed locally after the user saved and closed Navisworks. The installed manifest reports 1.2.1 and both host assemblies report 1.2.1.0. All 71 installed files match the staged release by SHA256, and all 32 installed ribbon icon references pass. The previous 1.2.0 bundle is retained in a backup directory outside Autodesk's plugin discovery folders. The SBT bundle is absent. The updater checks for running Navisworks processes, backs up the existing bundle, verifies copied files and restores the previous bundle if replacement fails.
+
+Fresh Manage 2026 and 2027 instances load the actual installed 1.2.1 command assembly and automatic watcher. In both hosts the installed Health command opens Federation Audit with its Watched views action, without changing model counts or creating/replacing a complete list. Both test instances close afterward.
 
 ## Live ACC observation and limits
 
