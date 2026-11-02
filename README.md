@@ -1,6 +1,6 @@
 # BIM Tools
 
-Company-neutral Navisworks **Section Box**, **Model Sharing** and **Clash Setup**, initially built and verified for Manage 2026/2027. 2024/2025 require matching installed hosts and remain skipped.
+Company-neutral Navisworks **Federation Audit**, **Section Box**, **Model Sharing** and **Clash Setup**, built for Manage 2026/2027. 2024/2025 require matching installed hosts and remain skipped.
 
 Download the installer from [1.1.1 Releases](https://github.com/Michael-Mah/BIM-Tools/releases/tag/v1.1.1). See the [model sharing guide](docs/MODEL-SHARING.md), [Clash Setup guide](docs/CLASH-SETUP.md) and [1.1.1 validation record](docs/VALIDATION-1.1.1.md). Close Navisworks before installation.
 
@@ -25,5 +25,9 @@ All OBJ, IFC4, NWC and NWD output is permanently clipped, including rotated boxe
 ## Clash setup
 
 See [Clash Setup](docs/CLASH-SETUP.md) for model discovery, saved selections, restoring a missing native test and confirming renamed-model replacements.
+
+## Federation health
+
+Version 1.2.0 adds **Health → Federation Audit**, ahead of the Coordination tools. Save a confirmed complete source-file list, then check for missing assemblies/children, changed sources, ambiguous or renamed matches, new files and limited embedded-file coverage. Checks preserve the baseline; optional open/refresh monitoring is opt-in. See [Federation Audit](docs/FEDERATION-AUDIT.md).
 
 Run probes on disposable models. Full-federation timings and recipient coordinate alignment require their own validation. This repository starts with clean history containing only generic sources.

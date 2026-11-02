@@ -7,3 +7,5 @@ The three original transparent blue masters were generated with the built-in ima
 The older SVG sources are retained for history; the renderer now uses the generated PNG masters. Do not regenerate the new artwork from those SVGs.
 
 Navisworks uses WPF image dimensions: `DIP = pixels * 96 / DPI`. The previous 384 DPI metadata caused 32 px icons to display at only 8 DIP. `tools/Test-RibbonAssets.ps1` decodes the actual ribbon references through WPF and checks their visible dimensions. `Build-Release.ps1` validates both source icons and the staged 2026/2027 and English ribbon assets before packaging.
+
+Federation Audit was added on 2026-11-02 using a newly generated blue cube/checklist master. Its prompt is recorded in federation-audit-prompt.json. All four families use the same 96 DPI output policy.

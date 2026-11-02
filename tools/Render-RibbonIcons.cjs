@@ -5,7 +5,7 @@ const sharp = require('sharp');
 const folder = path.resolve(__dirname, '../src/BIM.Tools/Ribbon/Images');
 const masters = path.resolve(__dirname, '../assets/icons/masters');
 (async () => {
-  for (const name of ['BimSectionBox', 'BimModelSharing', 'BimClash']) {
+  for (const name of ['BimFederationAudit', 'BimSectionBox', 'BimModelSharing', 'BimClash']) {
     for (const size of [16, 32, 64]) {
       await sharp(path.join(masters, `${name}.png`))
         .resize(size, size, { kernel: 'lanczos3' })
@@ -17,5 +17,5 @@ const masters = path.resolve(__dirname, '../assets/icons/masters');
         throw new Error(`Invalid ribbon dimensions, DPI or transparency: ${name}${size}.png`);
     }
   }
-  console.log('Generated three icon families at 16/32/64 px, 96 DPI, with transparency.');
+  console.log('Generated four icon families at 16/32/64 px, 96 DPI, with transparency.');
 })().catch(error => { console.error(error.message); process.exitCode = 1; });

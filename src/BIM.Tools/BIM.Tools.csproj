@@ -85,8 +85,11 @@
 
   <ItemGroup><Compile Include="Plugin\BimToolsPlugin.cs" /><Compile Include="EditionBrand.cs" /><Compile Include="Properties\AssemblyInfo.cs" /></ItemGroup>
   <ItemGroup><Compile Include="Clash\*.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="Health\*.cs" /></ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Ribbon\Images\BimFederationAudit64.png"><LogicalName>BIM.FederationAuditIcon</LogicalName></EmbeddedResource>
+    <None Include="Ribbon\Images\BimFederationAudit*.png"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <EmbeddedResource Include="Ribbon\Images\BimModelSharing64.png"><LogicalName>BIM.ModelSharingIcon</LogicalName></EmbeddedResource>
     <None Include="Ribbon\BimToolsRibbon.xaml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
