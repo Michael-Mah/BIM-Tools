@@ -76,6 +76,24 @@ namespace BIM.Tools.Health
             return text.Trim().Replace('\\', '/');
         }
         internal static bool Same(string a, string b) { return string.Equals(a ?? "", b ?? "", StringComparison.OrdinalIgnoreCase); }
+        internal static string DocumentKey(string path)
+        {
+            string clean=Clean(path); Uri uri;
+            if(Uri.TryCreate(clean,UriKind.Absolute,out uri)&&Same(uri.Scheme,"nwacc"))
+            {
+                string[] parts=uri.AbsolutePath.Split(new[]{'/'},StringSplitOptions.RemoveEmptyEntries);
+                Guid account,project,view;
+                if(Guid.TryParse(Segment(parts,"account"),out account)&&account!=Guid.Empty
+                    &&Guid.TryParse(Segment(parts,"project"),out project)&&project!=Guid.Empty
+                    &&Guid.TryParse(Segment(parts,"aggregate"),out view)&&view!=Guid.Empty)
+                    return "acc-view:"+account.ToString("D")+"/"+project.ToString("D")+"/"+view.ToString("D");
+            }
+            return clean;
+        }
+        private static string Segment(string[] parts,string name)
+        { for(int i=0;i<parts.Length-1;i++)if(Same(parts[i],name))return Uri.UnescapeDataString(parts[i+1]);return ""; }
+        internal static bool SameDocument(string first,string second)
+        { string key=DocumentKey(first);return key.Length>0&&Same(key,DocumentKey(second)); }
         internal static string ParentName(AuditSnapshot snapshot, AuditFile file)
         {
             List<string> names = new List<string>(); string parent = file.ParentId;

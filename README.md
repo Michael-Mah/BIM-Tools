@@ -28,6 +28,6 @@ See [Clash Setup](docs/CLASH-SETUP.md) for model discovery, saved selections, re
 
 ## Federation health
 
-Version 1.2.0 adds **Health → Federation Audit**, ahead of the Coordination tools. Save a confirmed complete source-file list, then check for missing assemblies/children, changed sources, ambiguous or renamed matches, new files and limited embedded-file coverage. Checks preserve the baseline; optional open/refresh monitoring is opt-in. See [Federation Audit](docs/FEDERATION-AUDIT.md).
+Version 1.2.1 adds **Watched views…** to **Health → Federation Audit**, ahead of the Coordination tools. Register any view by saving its confirmed complete source-file list, then enable or disable automatic checks per view. ACC views are matched by account, project and view identifiers; switching views selects their own expectations. Checks identify missing assemblies/children, changed sources, ambiguous or renamed matches, new files and limited embedded-file coverage, while retaining the saved baseline. See [Federation Audit](docs/FEDERATION-AUDIT.md).
 
 Run probes on disposable models. Full-federation timings and recipient coordinate alignment require their own validation. This repository starts with clean history containing only generic sources.

@@ -8,7 +8,7 @@ Open **BIM Tools → Health → Federation Audit**. This is the first ribbon too
 2. Open Federation Audit and choose **Save complete model list**.
 3. Give the list a name and confirm the assembly and contained-file counts. A new list is created by default. Replacing a selected list requires an explicit checkbox and confirmation, and keeps its previous version.
 
-The list is saved independently of the NWF under `%LOCALAPPDATA%/BIM-Tools/FederationBaselines`. A first list cannot identify files that were already absent when it was saved. Baselines are selected by their saved document path; another document's list requires an explicit confirmation before checking.
+The list is saved independently of the NWF under `%LOCALAPPDATA%/BIM-Tools/FederationBaselines`. A first list cannot identify files that were already absent when it was saved. The default list name comes from the currently opened view. Local files are associated by document path. ACC live views are associated by account, project and aggregate/view identifiers, so the same view can retain its association after a display-name or folder change. Unrecognized cloud addresses use their full path. Another view's list requires an explicit confirmation before a manual check.
 
 ## Check after updates
 
@@ -27,7 +27,11 @@ Choose the complete list and click **Check Now**. Use **Assemblies** or **Contai
 
 ## Automatic checks
 
-After saving a list for a saved Navisworks document, optionally enable **Check on open / refresh**. The watcher waits for the model collection to settle, checks the latest enabled list associated with that document, and gives a nonmodal notification for changes or incomplete coverage. The same unchanged issue set is not repeatedly notified. Checks never save or replace the baseline. Automatic checks are off until explicitly enabled.
+Save a complete model list for each view you want to register. There is no fixed list of view names or projects. Optionally enable **Check this view automatically on open / refresh** when saving, or use **Check on open / refresh** on the main window afterward.
+
+**Watched views…** lists registered views and lets you enable or disable each independently. It uses one active complete list per view. To use a different saved list for that view, select it on the main window and enable its automatic checks. Older complete lists are retained. Unchecking a view does not delete its saved model expectations.
+
+On opening or refreshing an enabled view, the watcher waits for the model collection to settle, compares that view's own saved list, and gives a nonmodal notification for changes or incomplete coverage. An open audit window switches to the current view's matching list and automatic results. Unregistered views are not checked against another view's expectations. The same unchanged issue set is not repeatedly notified. Checks never save or replace the baseline. Automatic checks are off until explicitly enabled. This works with the view loaded in Navisworks; it does not poll ACC in the background or list unopened remote views.
 
 ## Scope and performance
 
@@ -35,4 +39,4 @@ The reader inspects source-file roots and file-named embedded containers. It doe
 
 File presence does not prove that all geometry is complete or that the latest ACC version is loaded. This tool does not authenticate to ACC, inspect its entire remote package manifest or repair a broken cloud link. It does not classify hidden geometry as a missing source file.
 
-Version 1.2.0 is built for the installed 2026/2027 hosts. 2024/2025 remain skipped until matching installed hosts/API files are available.
+Version 1.2.1 is built for the installed 2026/2027 hosts. 2024/2025 remain skipped until matching installed hosts/API files are available.

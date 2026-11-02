@@ -52,14 +52,36 @@ public sealed class AuditWorkflowProbe : AddInPlugin
                 {
                     Check(rows.Count(r=>r.Status==AuditStatus.Missing)==1&&rows.Count(r=>r.Status==AuditStatus.Loaded)==1,"Actual dropped model appears as a missing expected file");
                     Check(store.Load(new List<string>()).Single().Snapshot.Files.Count==2,"Missing-file check does not overwrite the complete list");
+                    document.SaveFile(Path.Combine(folder,"first-user-chosen-view.nwf"));
                     AuditBaseline automatic=baseline.Copy();automatic.Id=Guid.NewGuid().ToString("D");automatic.Snapshot.DocumentPath=AuditNames.Clean(document.FileName);automatic.AutoCheck=true;store.Save(automatic);
                     AuditWatcher watcher=new AuditWatcher(store);watcher.OnLoaded();
                     try
                     {
-                        PumpUntil(delegate{return watcher.CompletedChecks>=1;});
-                        Check(watcher.NotificationCount==1,"Opt-in automatic check reports the missing model after loading settles");
-                        AuditWatcher.Queue();PumpUntil(delegate{return watcher.CompletedChecks>=2;});
-                        Check(watcher.NotificationCount==1,"Unchanged problems do not repeatedly notify");
+                        using(FederationAuditForm form=new FederationAuditForm(document,store))
+                        {
+                            typeof(FederationAuditWindow).GetField("_form",BindingFlags.NonPublic|BindingFlags.Static).SetValue(null,form);
+                            form.Opacity=0;form.ShowInTaskbar=false;form.Show();System.Windows.Forms.Application.DoEvents();
+                            PumpUntil(delegate{return watcher.CompletedChecks>=1;});
+                            Check(watcher.NotificationCount==1,"Opt-in automatic check reports the missing model after loading settles");
+                            AuditWatcher.Queue();PumpUntil(delegate{return watcher.CompletedChecks>=2;});
+                            Check(watcher.NotificationCount==1,"Unchanged problems do not repeatedly notify");
+                            string firstPath=document.FileName,secondPath=Path.Combine(folder,"second-user-chosen-view.nwf");
+                            AuditBaseline second=new AuditBaseline{Name="Another user-chosen view",Snapshot=snapshot.Copy()};second.Snapshot.DocumentPath=secondPath;store.SetAutomatic(second,true);
+                            document.SaveFile(secondPath);PumpUntil(delegate{return watcher.CompletedChecks>=3;});
+                            AuditBaseline displayed=(AuditBaseline)typeof(FederationAuditForm).GetField("_baseline",BindingFlags.NonPublic|BindingFlags.Instance).GetValue(form);
+                            AuditSnapshot displayedSnapshot=(AuditSnapshot)typeof(FederationAuditForm).GetField("_snapshot",BindingFlags.NonPublic|BindingFlags.Instance).GetValue(form);
+                            Check(displayed.Id==second.Id&&AuditNames.SameDocument(displayedSnapshot.DocumentPath,secondPath),"Open audit window switches to the new view and receives its own automatic results");
+                            Check(watcher.NotificationCount==1,"Complete second view does not inherit the first view's missing model warning");
+                            document.SaveFile(Path.Combine(folder,"unregistered-view.nwf"));PauseForWatch();
+                            Check(watcher.CompletedChecks==3,"Unregistered view is not checked against another view's complete list");
+                            document.SaveFile(firstPath);PumpUntil(delegate{return watcher.CompletedChecks>=4;});
+                            displayed=(AuditBaseline)typeof(FederationAuditForm).GetField("_baseline",BindingFlags.NonPublic|BindingFlags.Instance).GetValue(form);
+                            Check(displayed.Id==automatic.Id&&watcher.NotificationCount==2,"Returning to an enabled view restores its own expected models and missing warning");
+                            store.SetAutomatic(automatic,false);AuditWatcher.Queue();PauseForWatch();
+                            Check(watcher.CompletedChecks==4&&store.EnabledFor(secondPath).Id==second.Id,"Disabling one watched view stops its checks while the other remains enabled");
+                            Check(store.Load(new List<string>()).Single(b=>b.Id==automatic.Id).Snapshot.Files.Count==2,"View switching and opt-out never overwrite saved model expectations");
+                            form.Close();typeof(FederationAuditWindow).GetField("_form",BindingFlags.NonPublic|BindingFlags.Static).SetValue(null,null);
+                        }
                     }
                     finally{watcher.OnUnloading();}
                 }
@@ -76,6 +98,8 @@ public sealed class AuditWorkflowProbe : AddInPlugin
     }
     private static void PumpUntil(Func<bool> complete)
     {Stopwatch watch=Stopwatch.StartNew();while(!complete()&&watch.ElapsedMilliseconds<20000){System.Windows.Forms.Application.DoEvents();Thread.Sleep(20);}if(!complete())throw new Exception("Automatic check did not complete in time.");}
+    private static void PauseForWatch()
+    {Stopwatch watch=Stopwatch.StartNew();while(watch.ElapsedMilliseconds<5200){System.Windows.Forms.Application.DoEvents();Thread.Sleep(20);}}
     private void Preview(Document doc,AuditStore store,AuditBaseline baseline,AuditSnapshot snapshot,string folder)
     {
         using(FederationAuditForm form=new FederationAuditForm(doc,store))

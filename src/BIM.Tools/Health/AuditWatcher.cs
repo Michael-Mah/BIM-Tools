@@ -66,8 +66,7 @@ namespace BIM.Tools.Health
                 {
                     if(!_pending||DateTime.UtcNow<_due)return; _pending=false;
                     string documentPath=AuditNames.Clean(_document.FileName); if(string.IsNullOrEmpty(documentPath))return;
-                    List<string> warnings=new List<string>();
-                    _baseline=_store.Load(warnings).FirstOrDefault(b=>b.AutoCheck&&AuditNames.Same(b.Snapshot.DocumentPath,documentPath));
+                    _baseline=_store.EnabledFor(documentPath);
                     if(_baseline==null)return;
                     _snapshot=new AuditSnapshot(); _scanGeneration=_generation; _work=new AuditDiscovery().Read(_document,_snapshot).GetEnumerator();
                 }
@@ -83,7 +82,7 @@ namespace BIM.Tools.Health
                     int limited=_snapshot.Files.Count(f=>f.LimitedChildren);
                     if(issues.Count==0&&limited==0){_lastAlert=null;return;}
                     string fingerprint=_baseline.Id+"|"+string.Join("|",issues.Select(r=>r.File.Name+":"+r.Parent+":"+r.Status).OrderBy(s=>s))+"|"+limited;
-                    if(fingerprint!=_lastAlert){_lastAlert=fingerprint;Notify("Model list needs attention",issues.Count(r=>r.Status==AuditStatus.Missing)+" missing file entries · "+issues.Count(r=>r.Status!=AuditStatus.Missing)+" other changes\r\n"+limited+" containers with limited child-file coverage.");}
+                    if(fingerprint!=_lastAlert){_lastAlert=fingerprint;Notify("Model list needs attention",_baseline.Name+"\r\n"+issues.Count(r=>r.Status==AuditStatus.Missing)+" missing file entries · "+issues.Count(r=>r.Status!=AuditStatus.Missing)+" other changes\r\n"+limited+" containers with limited child-file coverage.");}
                     return;
                 }
             }

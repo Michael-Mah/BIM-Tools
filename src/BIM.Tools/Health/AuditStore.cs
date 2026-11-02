@@ -32,6 +32,23 @@ namespace BIM.Tools.Health
                 return value;
             }
         }
+        internal AuditBaseline EnabledFor(string documentPath)
+        { return Load(new List<string>()).FirstOrDefault(b=>b.AutoCheck&&AuditNames.SameDocument(b.Snapshot.DocumentPath,documentPath)); }
+        internal List<AuditBaseline> WatchedViews(IList<string> warnings)
+        {
+            return Load(warnings).GroupBy(b=>string.IsNullOrEmpty(AuditNames.DocumentKey(b.Snapshot.DocumentPath))?b.Id:AuditNames.DocumentKey(b.Snapshot.DocumentPath),StringComparer.OrdinalIgnoreCase)
+                .Select(group=>group.FirstOrDefault(b=>b.AutoCheck)??group.First()).OrderBy(b=>b.Name,StringComparer.OrdinalIgnoreCase).ToList();
+        }
+        internal void SetAutomatic(AuditBaseline baseline,bool enabled)
+        {
+            if(enabled&&string.IsNullOrEmpty(AuditNames.DocumentKey(baseline.Snapshot.DocumentPath)))
+                throw new InvalidOperationException("Save the Navisworks document and its complete list before enabling automatic checks.");
+            AuditBaseline copy=baseline.Copy();copy.AutoCheck=enabled;Save(copy);
+            if(enabled)
+                foreach(AuditBaseline other in Load(new List<string>()).Where(b=>b.Id!=copy.Id&&b.AutoCheck&&AuditNames.SameDocument(b.Snapshot.DocumentPath,copy.Snapshot.DocumentPath)))
+                {other.AutoCheck=false;Save(other);}
+            baseline.AutoCheck=copy.AutoCheck;baseline.SavedUtc=copy.SavedUtc;
+        }
         internal void Save(AuditBaseline baseline)
         {
             Validate(baseline);

@@ -34,6 +34,29 @@ internal static class AuditLayoutTests
             }
             form.Close();
         }
+        AuditStore store=new AuditStore(Path.Combine(output,"registered"));
+        AuditBaseline first=new AuditBaseline{Name="Arbitrary registered view A",Snapshot=new AuditSnapshot{DocumentPath="C:/Views/A.nwf"}},second=new AuditBaseline{Name="Another registered view B",Snapshot=new AuditSnapshot{DocumentPath="C:/Views/B.nwf"}};
+        first.Snapshot.Files.Add(new AuditFile{Name="STRUCTURE.rvt"});second.Snapshot.Files.Add(new AuditFile{Name="SERVICES.rvt"});
+        store.SetAutomatic(first,true);store.Save(second);
+        using(AuditWatchedViewsForm manager=new AuditWatchedViewsForm(store))
+        {
+            manager.Opacity=0;manager.Show();Application.DoEvents();
+            foreach(Size size in new[]{new Size(800,450),new Size(640,360)})
+            {
+                manager.ClientSize=size;manager.PerformLayout();Application.DoEvents();
+                DataGridView grid=All(manager).OfType<DataGridView>().Single();
+                if(grid.Rows.Count!=2||grid.Height<100)throw new Exception("Registered view table is not usable");
+                foreach(Button button in All(manager).OfType<Button>())
+                {Point p=manager.PointToClient(button.PointToScreen(Point.Empty));if(p.X<0||p.Y<0||p.X+button.Width>size.Width||p.Y+button.Height>size.Height)throw new Exception("Watched view action is outside viewport");}
+                using(Bitmap image=new Bitmap(manager.Width,manager.Height)){manager.DrawToBitmap(image,new Rectangle(Point.Empty,manager.Size));image.Save(Path.Combine(output,"watched-views-"+size.Width+".png"));}
+            }
+            DataGridView table=All(manager).OfType<DataGridView>().Single();
+            foreach(DataGridViewRow row in table.Rows)row.Cells[0].Value=((AuditBaseline)row.Tag).Id==second.Id;
+            manager.ApplyChanges();
+            if(store.EnabledFor(first.Snapshot.DocumentPath)!=null||store.EnabledFor(second.Snapshot.DocumentPath).Id!=second.Id||store.Load(new System.Collections.Generic.List<string>()).Any(b=>b.Snapshot.Files.Count!=1))throw new Exception("Watched view checkbox changes were not saved correctly");
+            Console.WriteLine("PASS Watched views UI toggles arbitrary views independently and retains their model lists");
+            manager.Close();
+        }
         return 0;
     }
     private static System.Collections.Generic.IEnumerable<Control> All(Control root){foreach(Control child in root.Controls){yield return child;foreach(Control nested in All(child))yield return nested;}}
