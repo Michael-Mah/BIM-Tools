@@ -54,6 +54,7 @@ namespace BIM.Tools.Health
             _baselines = new ComboBox { Width = 245, DropDownStyle = ComboBoxStyle.DropDownList }; actions.Controls.Add(_baselines);
             actions.Controls.Add(Action("Save complete model list",205,SaveComplete));
             actions.Controls.Add(Action("Watched views…",150,ManageViews));
+            actions.Controls.Add(Action("Compare Lists…",145,delegate{using(AuditCompareListsForm dialog=new AuditCompareListsForm(_store,Document.FileName))dialog.ShowDialog(this);}));
             Button check = Action("CHECK NOW",120,CheckNow); check.BackColor = BimTheme.Brand; check.ForeColor = Color.White; actions.Controls.Add(check);
             _export = Action("Export CSV",100,Export); actions.Controls.Add(_export); settings.Controls.Add(actions,0,0);
             TableLayoutPanel metadata = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount=1 };

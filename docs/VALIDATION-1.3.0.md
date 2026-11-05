@@ -1,0 +1,12 @@
+# BIM Tools 1.3.0 — Compare Lists
+
+Validated on 2026-11-05. Federation Audit adds a read-only comparison window for two saved model-file inventories. Both baseline revisions and capture times are retained in CSV output. Matching uses recorded filenames, source evidence and parent assembly context. Possible renames are suggestions, never accepted mappings. Unexposed or unresolved child inventories remain unverified. Neither saved list is modified.
+
+- All 59 core checks pass, including common files, A-only/B-only membership, reversing A/B, changed sources, unconfirmed rename suggestions, unresolved child coverage, unchanged baseline contents, complete CSV output and spreadsheet formula escaping.
+- Manage 2026 and 2027 release builds pass against matching installed APIs. No Autodesk assemblies or model fixtures are distributed.
+- The 2027 native workflow passes source discovery, NWF reopen, packed NWD source identities, moved/renamed sources, missing-source checks, opt-in monitoring and switching between registered/unregistered documents. Compare Lists renders the recorded inventories in the real host at 1060×720 and 760×540.
+- The standalone layout harness checks the main audit window at 1100×760, 850×580 and 760×540, and stresses 9–18 pt fonts. Compare Lists passes its small-window checks, membership filters, search and clearing stale results when the same list is selected twice. It also passes 11.25, 13.5 and 18 pt font stress at 1200×900. These are local layout tests, not tests on every physical monitor configuration.
+- All 32 release ribbon image references pass. The EXE installer is extracted to staging and all 71 files match the built bundle by SHA256. The local installation matches the staged bundle and the previous 1.2.2 version is backed up outside Autodesk plugin discovery folders.
+- Fresh Manage 2026 and 2027 instances load the actual installed 1.3.0 command assembly and automatic watcher. In both hosts the Health command opens the real audit window with Watched views and Compare Lists actions, without changing models or saving a baseline. Both test instances close afterward. The two pre-existing saved-list files retain their exact SHA256 hashes.
+
+The comparison uses saved source-file inventories, not live ACC queries or geometry differences. Source files that were already absent when a baseline was recorded cannot be recovered from that baseline. 2024/2025 remain skipped because the matching hosts/APIs are not installed.

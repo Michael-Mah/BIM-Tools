@@ -25,6 +25,16 @@ The **Complete list** selector shows only lists associated with the open model a
 
 **Export CSV** includes all rows, their parent assemblies, source evidence, check time and coverage limitations. After models change, check again before exporting or changing a mapping.
 
+## Compare saved lists
+
+Choose **Compare Lists…** in Federation Audit. Select **List A** and **List B** from the saved complete lists. The selector includes all registered models and separately saved snapshots of the same model. Capture times distinguish older inventories; this does not query the current cloud models.
+
+Results show **Both**, **Only A**, **Only B** and **Unverified**, with separate states for changed sources and possible matches. Common files are matched within their parent assemblies. A possible renamed file is suggested for review and is not automatically counted as a confirmed common file. An unresolved or unexposed parent/child list remains unverified. Totals include all source-file entries; parent and contained-file rows are separate entries.
+
+Filter by presence, use **Differences only**, or search file and parent names. Select a row to inspect sources and possible matches. **Export all to CSV** includes the whole comparison, both model paths, list revisions and capture timestamps, candidates and coverage information, regardless of display filters. Comparing or exporting does not edit either list or append/relink models.
+
+To compare successive versions of one federation, save each complete list as a new list. Replacing a selected list retains its backup for recovery but the comparison selector uses the separately registered XML lists.
+
 ## Automatic checks
 
 Save a complete model list for each view you want to register. There is no fixed list of view names or projects. Optionally enable **Check this view automatically on open / refresh** when saving, or use **Check on open / refresh** on the main window afterward.
@@ -39,4 +49,4 @@ The reader inspects source-file roots and file-named embedded containers. It doe
 
 File presence does not prove that all geometry is complete or that the latest ACC version is loaded. This tool does not authenticate to ACC, inspect its entire remote package manifest or repair a broken cloud link. It does not classify hidden geometry as a missing source file.
 
-Version 1.2.2 is built for the installed 2026/2027 hosts. 2024/2025 remain skipped until matching installed hosts/API files are available.
+Version 1.3.0 is built for the installed 2026/2027 hosts. 2024/2025 remain skipped until matching installed hosts/API files are available.

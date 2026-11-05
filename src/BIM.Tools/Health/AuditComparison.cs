@@ -107,7 +107,7 @@ namespace BIM.Tools.Health
                 foreach (AuditFile file in baseline.Snapshot.Files.Where(f => f.LimitedChildren)) writer.WriteLine(string.Join(",", new[] { baseline.Name, baseline.Revision.ToString(), snapshot.CapturedUtc, "Saved coverage", "Cannot verify", file.Name, AuditNames.ParentName(baseline.Snapshot,file), "", "", "", "The saved complete list had limited embedded-file coverage for this container." }.Select(Csv)));
             }
         }
-        private static string Csv(string value)
+        internal static string Csv(string value)
         { value = value ?? ""; if (value.TrimStart().StartsWith("=") || value.TrimStart().StartsWith("+") || value.TrimStart().StartsWith("-") || value.TrimStart().StartsWith("@")) value = "'" + value; return "\"" + value.Replace("\"", "\"\"") + "\""; }
     }
 }

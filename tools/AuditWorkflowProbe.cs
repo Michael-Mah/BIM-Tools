@@ -39,6 +39,20 @@ public sealed class AuditWorkflowProbe : AddInPlugin
                 File.WriteAllText(Path.Combine(folder,"baseline-id.txt"),baseline.Id);
                 Check(store.Load(new List<string>()).Single().Snapshot.Files.Count==2,"Actual host model list saved independently of the NWF");
                 Preview(document,store,baseline,snapshot,folder);
+                AuditStore compareStore=new AuditStore(Path.Combine(folder,"compare-baselines"));compareStore.Save(baseline);
+                AuditBaseline other=baseline.Copy();other.Id=Guid.NewGuid().ToString("D");other.Name="Second federation";other.Snapshot.DocumentPath=Path.Combine(folder,"second.nwf");other.Snapshot.Files.RemoveAt(1);compareStore.Save(other);
+                using(AuditCompareListsForm compare=new AuditCompareListsForm(compareStore,document.FileName))
+                {
+                    compare.Opacity=0;compare.ShowInTaskbar=false;compare.Show();System.Windows.Forms.Application.DoEvents();
+                    foreach(Size size in new[]{new Size(1060,720),new Size(760,540)})
+                    {
+                        compare.ClientSize=size;for(int i=0;i<4;i++){compare.PerformLayout();System.Windows.Forms.Application.DoEvents();}
+                        DataGridView grid=Descendants(compare).OfType<DataGridView>().Single();
+                        Check(grid.Rows.Count==2&&grid.Height>=80,"Compare Lists renders both recorded inventories at "+size.Width);
+                        using(Bitmap bitmap=new Bitmap(compare.Width,compare.Height)){compare.DrawToBitmap(bitmap,new Rectangle(Point.Empty,compare.Size));bitmap.Save(Path.Combine(folder,"compare-"+size.Width+".png"));}
+                    }
+                    compare.Close();
+                }
                 document.SaveFile(Path.Combine(folder,"packed.nwd"));
             }
             else

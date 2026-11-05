@@ -71,6 +71,35 @@ internal static class AuditLayoutTests
             Console.WriteLine("PASS Watched views UI toggles arbitrary views independently and retains their model lists");
             manager.Close();
         }
+        using(AuditCompareListsForm compare=new AuditCompareListsForm(store,first.Snapshot.DocumentPath))
+        {
+            compare.Opacity=0;compare.ShowInTaskbar=false;compare.Show();Application.DoEvents();
+            foreach(Size size in new[]{new Size(1060,720),new Size(760,540)})
+            {
+                compare.ClientSize=size;for(int i=0;i<4;i++){compare.PerformLayout();Application.DoEvents();}
+                DataGridView grid=All(compare).OfType<DataGridView>().Single();
+                if(grid.Rows.Count!=2||grid.Height<80)throw new Exception("Comparison table is not usable at "+size);
+                foreach(Button button in All(compare).OfType<Button>()){Point p=compare.PointToClient(button.PointToScreen(Point.Empty));if(p.Y+button.Height>compare.ClientSize.Height)throw new Exception("Comparison action outside viewport");}
+                using(Bitmap bitmap=new Bitmap(compare.Width,compare.Height)){compare.DrawToBitmap(bitmap,new Rectangle(Point.Empty,compare.Size));bitmap.Save(Path.Combine(output,"compare-"+size.Width+".png"));}
+            }
+            foreach(float points in new[]{11.25F,13.5F,18F})
+            {
+                compare.Font=new Font("Segoe UI",points);compare.ClientSize=new Size(1200,900);for(int i=0;i<5;i++){compare.PerformLayout();Application.DoEvents();}
+                DataGridView grid=All(compare).OfType<DataGridView>().Single();if(grid.Height<80)throw new Exception("Large-font comparison grid is unusable");
+                foreach(Button button in All(compare).OfType<Button>())if(button.Height<TextRenderer.MeasureText(button.Text,button.Font).Height+4)throw new Exception("Large-font comparison button clipped");
+                using(Bitmap bitmap=new Bitmap(compare.Width,compare.Height)){compare.DrawToBitmap(bitmap,new Rectangle(Point.Empty,compare.Size));bitmap.Save(Path.Combine(output,"compare-font-"+points+".png"));}
+            }
+            BindingFlags fields=BindingFlags.NonPublic|BindingFlags.Instance;
+            ComboBox filter=(ComboBox)typeof(AuditCompareListsForm).GetField("_filter",fields).GetValue(compare);
+            filter.SelectedIndex=2;if(All(compare).OfType<DataGridView>().Single().Rows.Count!=1)throw new Exception("Only A filter failed");
+            filter.SelectedIndex=3;if(All(compare).OfType<DataGridView>().Single().Rows.Count!=1)throw new Exception("Only B filter failed");
+            filter.SelectedIndex=0;TextBox search=(TextBox)typeof(AuditCompareListsForm).GetField("_search",fields).GetValue(compare);search.Text="STRUCTURE";
+            if(All(compare).OfType<DataGridView>().Single().Rows.Count!=1)throw new Exception("Comparison search failed");search.Clear();
+            ComboBox a=(ComboBox)typeof(AuditCompareListsForm).GetField("_a",fields).GetValue(compare),b=(ComboBox)typeof(AuditCompareListsForm).GetField("_b",fields).GetValue(compare);b.SelectedIndex=a.SelectedIndex;
+            Button export=(Button)typeof(AuditCompareListsForm).GetField("_export",fields).GetValue(compare);
+            if(export.Enabled||All(compare).OfType<DataGridView>().Single().Rows.Count!=0)throw new Exception("Stale comparison results not cleared");
+            Console.WriteLine("PASS Compare Lists UI: two lists, small window, filters, search and same-list reset");compare.Close();
+        }
         return 0;
     }
     private static System.Collections.Generic.IEnumerable<Control> All(Control root){foreach(Control child in root.Controls){yield return child;foreach(Control nested in All(child))yield return nested;}}

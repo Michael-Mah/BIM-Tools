@@ -110,6 +110,25 @@ internal static class AuditTests
             Check(a.ToString().StartsWith("Coordination-A.nwfacc"),"Legacy list labels display their associated filename without rewriting expectations");
             Check(viewStore.ForDocument(pathB,new List<string>()).All(x=>x.Id==b.Id)&&viewStore.ForDocument(pathA,new List<string>()).Count==2,"Model selector excludes other models and retains this model's historical lists");
             Check(viewStore.ForDocument("C:/NoBaseline.nwf",new List<string>()).Count==0,"Unregistered model never inherits a previously selected list");
+            AuditBaseline left=new AuditBaseline{Name="List A",Snapshot=Two()},right=new AuditBaseline{Name="List B",Snapshot=Reidentify(left.Snapshot)};
+            string before=string.Join("|",left.Snapshot.Files.Select(f=>f.Id+f.Name+f.Source));
+            Check(AuditListComparison.Compare(left,right).All(r=>r.Presence=="Both"),"Compare Lists identifies common files within their own parent assemblies");
+            right.Snapshot.Files.RemoveRange(2,2);right.Snapshot.Files.Add(FileEntry("LANDSCAPE.nwc","C:/LANDSCAPE.nwc"));
+            List<AuditListRow> diff=AuditListComparison.Compare(left,right);
+            Check(diff.Count(r=>r.Presence=="Only A")==2&&diff.Count(r=>r.Presence=="Only B")==1,"Compare Lists preserves removed parents and children and identifies B-only files");
+            List<AuditListRow> reverse=AuditListComparison.Compare(right,left);
+            Check(reverse.Count(r=>r.Presence=="Only A")==1&&reverse.Count(r=>r.Presence=="Only B")==2,"Reversing comparison reverses membership direction");
+            right.Snapshot=Reidentify(left.Snapshot);right.Snapshot.Files[0].Source="C:/Moved/Structure.nwd";
+            Check(AuditListComparison.Compare(left,right).Any(r=>r.Presence=="Both"&&r.Evidence.Status==AuditStatus.SourceChanged),"Same-name changed source remains in both lists and is flagged");
+            right.Snapshot.Files[0].Name="GEN-STRUCTURE-ASM-R02.nwd";
+            diff=AuditListComparison.Compare(left,right);
+            Check(diff.Any(r=>r.Evidence.Status==AuditStatus.Review&&r.Evidence.Current==null&&r.Evidence.Candidates.Count>0),"Possible rename is suggested without claiming a confirmed common file");
+            Check(diff.Any(r=>r.Presence=="Unverified"),"Unresolved parent does not falsely classify its children as A-only");
+            Check(before==string.Join("|",left.Snapshot.Files.Select(f=>f.Id+f.Name+f.Source)),"Comparing saved lists does not modify expectations");
+            string report=Path.Combine(folder,"compare.csv");AuditListComparison.Export(report,left,right,diff);
+            Check(System.IO.File.ReadAllText(report).Contains("Captured UTC A")&&System.IO.File.ReadAllLines(report).Length==diff.Count+1,"Comparison CSV contains every result and both snapshot capture times");
+            Check(AuditComparison.Csv("=FORMULA").StartsWith("\"'="),"Comparison CSV protects spreadsheet formula prefixes");
+            Check(AuditListComparison.Compare(left,left).All(r=>r.Presence=="Both"),"Comparing identical recorded inventories is stable");
             Console.WriteLine("PASS "+checks+" federation audit checks");return 0;
         }
         catch(Exception error){Console.Error.WriteLine(error);return 1;}
