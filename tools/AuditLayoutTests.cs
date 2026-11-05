@@ -34,6 +34,20 @@ internal static class AuditLayoutTests
             }
             form.Close();
         }
+        foreach(float points in new[]{9F,11.25F,13.5F,18F})
+        using(FederationAuditForm form=new FederationAuditForm(null,new AuditStore(Path.Combine(output,"unused"))))
+        {
+            form.Font=new Font("Segoe UI",points);form.Opacity=0;form.ShowInTaskbar=false;form.Show();
+            form.ClientSize=new Size(1100,800);
+            for(int i=0;i<5;i++){form.PerformLayout();Application.DoEvents();}
+            Button mapping=All(form).OfType<Button>().Single(b=>b.Text=="Review mapping…");
+            if(mapping.Height< TextRenderer.MeasureText(mapping.Text,mapping.Font).Height+mapping.Padding.Vertical+4)throw new Exception("Mapping caption clipped at font "+points);
+            foreach(FlowLayoutPanel panel in All(form).OfType<FlowLayoutPanel>())
+                if(panel.Controls.Cast<Control>().Any(c=>c.Bottom>panel.ClientSize.Height))throw new Exception("Toolbar clipped at font "+points);
+            using(Bitmap bitmap=new Bitmap(form.Width,form.Height)){form.DrawToBitmap(bitmap,new Rectangle(Point.Empty,form.Size));bitmap.Save(Path.Combine(output,"font-"+points+".png"));}
+            Console.WriteLine("PASS font scaling "+points+"pt; mapping height="+mapping.Height);
+            form.Close();
+        }
         AuditStore store=new AuditStore(Path.Combine(output,"registered"));
         AuditBaseline first=new AuditBaseline{Name="Arbitrary registered view A",Snapshot=new AuditSnapshot{DocumentPath="C:/Views/A.nwf"}},second=new AuditBaseline{Name="Another registered view B",Snapshot=new AuditSnapshot{DocumentPath="C:/Views/B.nwf"}};
         first.Snapshot.Files.Add(new AuditFile{Name="STRUCTURE.rvt"});second.Snapshot.Files.Add(new AuditFile{Name="SERVICES.rvt"});

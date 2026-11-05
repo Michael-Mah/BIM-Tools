@@ -17,8 +17,8 @@ public sealed class AuditInstalledSmoke : AddInPlugin
             string folder=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"BIM-Tools","FederationBaselines");
             string[] before=Directory.Exists(folder)?Directory.GetFiles(folder):new string[0];
             CommandHandlerPlugin commands=NavisApplication.Plugins.FindPlugin("BIM.Tools.Commands.BIMT").LoadPlugin() as CommandHandlerPlugin;
-            if(commands==null||commands.GetType().Assembly.GetName().Version.ToString()!="1.2.1.0")throw new Exception("Installed command assembly is not 1.2.1.");
-            log.AppendLine("PASS Installed BIM Tools command assembly is 1.2.1");
+            if(commands==null||commands.GetType().Assembly.GetName().Version.ToString()!="1.2.2.0")throw new Exception("Installed command assembly is not 1.2.2.");
+            log.AppendLine("PASS Installed BIM Tools command assembly is 1.2.2");
             EventWatcherPluginRecord watcher=NavisApplication.Plugins.FindPlugin("BIM.FederationAudit.Watcher.BIMT") as EventWatcherPluginRecord;
             if(watcher==null||watcher.LoadedPlugin==null)throw new Exception("Installed automatic watcher did not load at startup.");
             log.AppendLine("PASS Installed Federation Audit watcher loads at startup");

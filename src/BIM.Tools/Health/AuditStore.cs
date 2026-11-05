@@ -34,6 +34,8 @@ namespace BIM.Tools.Health
         }
         internal AuditBaseline EnabledFor(string documentPath)
         { return Load(new List<string>()).FirstOrDefault(b=>b.AutoCheck&&AuditNames.SameDocument(b.Snapshot.DocumentPath,documentPath)); }
+        internal List<AuditBaseline> ForDocument(string documentPath,IList<string> warnings)
+        { return Load(warnings).Where(b=>AuditNames.SameDocument(b.Snapshot.DocumentPath,documentPath)).OrderByDescending(b=>b.AutoCheck).ToList(); }
         internal List<AuditBaseline> WatchedViews(IList<string> warnings)
         {
             return Load(warnings).GroupBy(b=>string.IsNullOrEmpty(AuditNames.DocumentKey(b.Snapshot.DocumentPath))?b.Id:AuditNames.DocumentKey(b.Snapshot.DocumentPath),StringComparer.OrdinalIgnoreCase)

@@ -105,6 +105,11 @@ internal static class AuditTests
             Check(System.IO.File.ReadAllText(csv).Contains("Parent assembly")&&System.IO.File.ReadAllLines(csv).Length==5,"Report records all file identities and their assembly context");
             AuditSnapshot large=new AuditSnapshot();for(int i=0;i<64;i++){AuditFile top=FileEntry("ASSEMBLY-"+i+".nwd","C:/Models/"+i+".nwd");large.Files.Add(top);for(int j=0;j<8;j++)large.Files.Add(FileEntry("CHILD-"+j+".rvt","C:/Models/"+i+"/"+j+".rvt",top.Id));}
             Check(AuditComparison.Compare(large,Reidentify(large)).Count(r=>r.Status==AuditStatus.Loaded)==576,"64 assemblies and 512 child files reconcile by hierarchy");
+            Check(AuditNames.ModelName("C:/Models/My Model.nwf","old name")=="My Model.nwf","Complete list uses the actual local model filename");
+            Check(AuditNames.ModelName(renamedA,"old name")=="Renamed-A.nwfacc","Complete list uses the decoded cloud model filename");
+            Check(a.ToString().StartsWith("Coordination-A.nwfacc"),"Legacy list labels display their associated filename without rewriting expectations");
+            Check(viewStore.ForDocument(pathB,new List<string>()).All(x=>x.Id==b.Id)&&viewStore.ForDocument(pathA,new List<string>()).Count==2,"Model selector excludes other models and retains this model's historical lists");
+            Check(viewStore.ForDocument("C:/NoBaseline.nwf",new List<string>()).Count==0,"Unregistered model never inherits a previously selected list");
             Console.WriteLine("PASS "+checks+" federation audit checks");return 0;
         }
         catch(Exception error){Console.Error.WriteLine(error);return 1;}

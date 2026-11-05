@@ -39,6 +39,13 @@ namespace BIM.Tools.Health
             Button apply=new Button{Text="Save changes",Size=new Size(140,30),BackColor=BimTheme.Brand,ForeColor=Color.White,FlatStyle=FlatStyle.Flat};
             apply.Click+=delegate {try{ApplyChanges();DialogResult=DialogResult.OK;Close();}catch(Exception error){BimDialog.ShowError(this,"Watched views",error.Message,error.ToString());}};
             buttons.Controls.Add(cancel);buttons.Controls.Add(apply);layout.Controls.Add(buttons,0,2);Controls.Add(layout);AcceptButton=apply;CancelButton=cancel;
+            foreach(Button button in new[]{cancel,apply}){button.AutoSize=true;button.MinimumSize=new Size(100,Font.Height+16);}
+            Layout+=delegate
+            {
+                Label explanation=layout.GetControlFromPosition(0,0) as Label;
+                if(explanation!=null)layout.RowStyles[0].Height=Math.Max(70,TextRenderer.MeasureText(explanation.Text,Font,new Size(Math.Max(100,layout.ClientSize.Width-40),int.MaxValue),TextFormatFlags.WordBreak).Height+16);
+                layout.RowStyles[2].Height=Math.Max(48,Font.Height+40);
+            };
             Shown+=delegate{BimWindowLayout.FitToWorkingArea(this);};
         }
         internal void ApplyChanges()

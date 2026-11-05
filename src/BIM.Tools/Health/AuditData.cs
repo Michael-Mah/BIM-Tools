@@ -38,12 +38,19 @@ namespace BIM.Tools.Health
         public bool AutoCheck { get; set; }
         public string SavedUtc { get; set; }
         public AuditSnapshot Snapshot { get; set; }
+        [XmlIgnore] public string DisplayModelName { get; set; }
         public AuditBaseline() { SchemaVersion = 1; Id = Guid.NewGuid().ToString("D"); Revision = 1; }
         public AuditBaseline Copy() { return new AuditBaseline { SchemaVersion = SchemaVersion, Id = Id, Name = Name, Revision = Revision, AutoCheck = AutoCheck, SavedUtc = SavedUtc, Snapshot = Snapshot.Copy() }; }
-        public override string ToString() { return Name + " · v" + Revision; }
+        public override string ToString() { return (string.IsNullOrEmpty(DisplayModelName)?AuditNames.ModelName(Snapshot==null?null:Snapshot.DocumentPath,Name):DisplayModelName) + " · v" + Revision; }
     }
     internal static class AuditNames
     {
+        internal static string ModelName(string path,string fallback)
+        {
+            string clean=Clean(path);int slash=clean.LastIndexOf('/');string name=clean.Substring(slash+1);
+            try{name=Uri.UnescapeDataString(name);}catch{}
+            return string.IsNullOrWhiteSpace(name)?fallback:name;
+        }
         private static readonly Regex FilePattern = new Regex(@"[^/\\]+?\.(?:nwf|nwd|nwc|rvt|ifc|dwg|dgn|dxf|rfa|3ds|fbx|skp|obj|stp|step|igs|iges)(?=$|[\s?#])", RegexOptions.IgnoreCase);
         internal static string FileName(params string[] texts)
         {
