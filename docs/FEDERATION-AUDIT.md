@@ -1,6 +1,6 @@
 # Federation Audit
 
-Open **BIM Tools → Health → Federation Audit**. This is the first ribbon tool, ahead of the Coordination tools. It compares a remembered complete source-file list with the model files currently loaded in Navisworks Manage 2026/2027.
+Open **BIM Tools → Health → Federation Audit**. This is the first ribbon tool, ahead of the Coordination tools. It compares a remembered complete source-file list with the model files currently loaded in Navisworks Manage 2024/2025/2026/2027.
 
 ## Save the complete list
 
@@ -49,4 +49,4 @@ The reader inspects source-file roots and file-named embedded containers. It doe
 
 File presence does not prove that all geometry is complete or that the latest ACC version is loaded. This tool does not authenticate to ACC, inspect its entire remote package manifest or repair a broken cloud link. It does not classify hidden geometry as a missing source file.
 
-Version 1.3.0 is built for the installed 2026/2027 hosts. 2024/2025 remain skipped until matching installed hosts/API files are available.
+Version 1.3.0 has separate build targets for Navisworks Manage 2024, 2025, 2026 and 2027. Each build requires the matching host/API files; native behavior must be validated in that host.

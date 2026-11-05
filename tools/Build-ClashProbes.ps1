@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([ValidateSet(2026,2027)] [int[]] $Versions = @(2026,2027))
+param([ValidateSet(2024,2025,2026,2027)] [int[]] $Versions = @(2024,2025,2026,2027))
 $ErrorActionPreference='Stop'
 $repoRoot=Split-Path -Parent $PSScriptRoot
 $compiler=Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'

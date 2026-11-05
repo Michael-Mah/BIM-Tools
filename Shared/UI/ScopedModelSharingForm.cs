@@ -126,7 +126,7 @@ namespace BIM.Tools.UI
             outputCard.Controls.Add(Label("All formats permanently cut geometry at the box boundary; cut ends are open.\r\nExtract the ZIP before import. OBJ needs its MTL beside it and units = metres.\r\nWorld coordinates and colours stay; original CAD properties/textures are omitted.", new Point(16,38), new Size(670,60), BimTheme.Muted, 9F));
             int hostYear=typeof(Document).Assembly.GetName().Version.Major+2003;
             string[] titles={"IFC4","OBJ","NWC","NWD"};
-            string[] descriptions={"Source identifiers","Geometry + colours","Navisworks "+hostYear,"Navisworks 2026/2027"};
+            string[] descriptions={"Source identifiers","Geometry + colours","Navisworks "+hostYear,"Navisworks "+hostYear};
             for(int i=0;i<4;i++)
             {
                 _formats[i]=new RadioButton {Text=titles[i],Tag=new[]{"ifc","obj","nwc","nwd"}[i],Appearance=Appearance.Button,TextAlign=ContentAlignment.MiddleCenter,FlatStyle=FlatStyle.Flat,Location=new Point(16+i*170,104),Size=new Size(160,28),BackColor=BimTheme.Secondary};

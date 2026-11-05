@@ -1,6 +1,6 @@
 # BIM Tools
 
-Company-neutral Navisworks **Federation Audit**, **Section Box**, **Model Sharing** and **Clash Setup**, built for Manage 2026/2027. 2024/2025 require matching installed hosts and remain skipped.
+Company-neutral Navisworks **Federation Audit**, **Section Box**, **Model Sharing** and **Clash Setup**, targeting Manage 2024/2025/2026/2027.
 
 Download the installer from [1.3.0 Releases](https://github.com/Michael-Mah/BIM-Tools/releases/tag/v1.3.0). See the [model sharing guide](docs/MODEL-SHARING.md), [Clash Setup guide](docs/CLASH-SETUP.md) and [1.3.0 validation record](docs/VALIDATION-1.3.0.md). Close Navisworks before installation.
 
@@ -11,7 +11,7 @@ The generic product has no fixed company model list or project-specific package 
 ## Build
 
 ```powershell
-./tools/Build-Release.ps1 -Versions 2026,2027
+./tools/Build-Release.ps1 -Versions 2024,2025,2026,2027
 ```
 
 Requires matching authentic Autodesk assemblies and .NET Framework 4.8 reference assemblies. No Autodesk assemblies or model fixtures are distributed.
@@ -20,7 +20,7 @@ Requires matching authentic Autodesk assemblies and .NET Framework 4.8 reference
 
 Confirm the current Section Box or choose a Saved Viewpoint, then explicitly **Detect Section Box Content**. Models inside the box are checked automatically; uncheck exclusions. After moving/resizing the box, **Refresh Content** updates affected contents and preserves exclusions. Four format buttons show measured time ranges.
 
-All OBJ, IFC4, NWC and NWD output is permanently clipped, including rotated boxes. Cut ends are open. Native outputs are converted only from clipped IFC in a separate owned Navisworks instance. Extract the transfer ZIP before import. OBJ needs its MTL companion and explicit metre import units; IFC/native formats carry unit information. NWD is saved as 2026 format; backward compatibility of 2027 NWC is unverified. Original CAD properties/textures are omitted.
+All OBJ, IFC4, NWC and NWD output is permanently clipped, including rotated boxes. Cut ends are open. Native outputs are converted only from clipped IFC in a separate owned Navisworks instance. Extract the transfer ZIP before import. OBJ needs its MTL companion and explicit metre import units; IFC/native formats carry unit information. NWD is saved in the active Navisworks host format. Original CAD properties/textures are omitted.
 
 ## Clash setup
 

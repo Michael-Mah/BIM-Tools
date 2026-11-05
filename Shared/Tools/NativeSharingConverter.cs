@@ -48,7 +48,8 @@ internal static class NativeSharingConverter
                 File.WriteAllText(args[3],"Loading permanently clipped geometry");
                 app.OpenFile(args[1],new string[0]); check();
                 app.AddPluginAssembly(Assembly.GetExecutingAssembly().Location);
-                File.WriteAllText(args[3],"Saving NWD in Navisworks 2026 format");
+                int hostYear = typeof(Document).Assembly.GetName().Version.Major + 2003;
+                File.WriteAllText(args[3],"Saving NWD in Navisworks " + hostYear + " format");
                 if(app.ExecuteAddInPlugin("BIM.NativeSharingSave.BIMT",new[]{args[2]})!=0) throw new IOException("Navisworks did not save the NWD.");
                 check();
             }
@@ -67,6 +68,11 @@ public sealed class NativeSharingSave : AddInPlugin
     {
         // This document contains only the generated, already clipped IFC.
         Document doc=Autodesk.Navisworks.Api.Application.ActiveDocument;
-        return doc.TrySaveFile(args[0],DocumentFileVersion.Navisworks2026) ? 0 : -1;
+        int hostYear = typeof(Document).Assembly.GetName().Version.Major + 2003;
+        string versionName = "Navisworks" + hostYear;
+        DocumentFileVersion version;
+        try { version = (DocumentFileVersion)Enum.Parse(typeof(DocumentFileVersion), versionName); }
+        catch (Exception error) { throw new InvalidOperationException("This Navisworks API does not expose " + versionName + ".", error); }
+        return doc.TrySaveFile(args[0],version) ? 0 : -1;
     }
 }
