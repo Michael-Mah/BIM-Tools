@@ -33,10 +33,9 @@ namespace BIM.Tools.Services
         {
             try
             {
-                ClipPlaneSet clipping = saved.Viewpoint.ClipPlanes;
-                if (clipping == null || clipping.Mode != ClipPlaneSetMode.Box) return false;
+                if (!ClipPlaneCompatibility.IsBox(saved.Viewpoint)) return false;
                 BoundingBox3D bounds = new BoundingBox3D(); Rotation3D rotation = new Rotation3D();
-                clipping.GetOrientedBox(bounds, rotation);
+                ClipPlaneCompatibility.GetOrientedBox(saved.Viewpoint, bounds, rotation);
                 return !bounds.IsEmpty && bounds.Size.X > 0 && bounds.Size.Y > 0 && bounds.Size.Z > 0;
             }
             catch { return false; }
@@ -47,7 +46,7 @@ namespace BIM.Tools.Services
             // Copy only the camera and clipping snapshot. Do not apply saved hide /
             // appearance overrides, which could touch hundreds of thousands of items.
             Viewpoint view = saved.Viewpoint.Viewpoint.CreateCopy();
-            ClipPlaneSet planes = view.ClipPlanes; planes.Enabled = true; view.ClipPlanes = planes;
+            ClipPlaneCompatibility.SetEnabled(view, true);
             document.CurrentViewpoint.CopyFrom(view);
         }
     }

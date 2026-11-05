@@ -222,10 +222,14 @@ namespace BIM.Tools.Services
             if(value.IsDisplayString) return value.ToDisplayString();
             if(value.IsIdentifierString) return value.ToIdentifierString();
             if(value.IsInt32) return value.ToInt32().ToString(CultureInfo.InvariantCulture);
+#if NAVISWORKS2024 || NAVISWORKS2025
+            return string.Empty;
+#else
             if(value.IsInt64) return value.ToInt64().ToString(CultureInfo.InvariantCulture);
             if(value.IsNat32) return value.ToNat32().ToString(CultureInfo.InvariantCulture);
             if(value.IsNat64) return value.ToNat64().ToString(CultureInfo.InvariantCulture);
             return string.Empty;
+#endif
         }
 
         public void PackageForTransfer(SharingSummary summary)

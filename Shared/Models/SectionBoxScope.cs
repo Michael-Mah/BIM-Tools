@@ -61,13 +61,12 @@ namespace BIM.Tools.Models
             try
             {
                 Viewpoint viewpoint = view.CreateViewpointCopy();
-                ClipPlaneSet clipping = viewpoint.ClipPlanes;
-                if (clipping == null || !clipping.Enabled)
+                if (!ClipPlaneCompatibility.IsEnabled(viewpoint))
                 {
                     reason = "The native Section Box is disabled.";
                     return false;
                 }
-                if (clipping.Mode != ClipPlaneSetMode.Box)
+                if (!ClipPlaneCompatibility.IsBox(viewpoint))
                 {
                     reason = "The active clipping mode is not a native Section Box.";
                     return false;
@@ -75,7 +74,7 @@ namespace BIM.Tools.Models
 
                 BoundingBox3D orientedBox = new BoundingBox3D();
                 Rotation3D rotation = new Rotation3D();
-                clipping.GetOrientedBox(orientedBox, rotation);
+                ClipPlaneCompatibility.GetOrientedBox(viewpoint, orientedBox, rotation);
                 Point3D first = orientedBox.Min;
                 Point3D second = orientedBox.Max;
                 Point3D minimum = new Point3D(

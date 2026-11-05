@@ -38,16 +38,15 @@ namespace BIM.Tools.SharingProbe
                 BoundingBox3D sourceBounds = chosen.BoundingBox();
                 Point3D center = sourceBounds.Center;
                 Vector3D half = new Vector3D(sourceBounds.Size.X * 0.25, sourceBounds.Size.Y * 0.6, sourceBounds.Size.Z * 0.6);
-                ClipPlaneSet planes = new ClipPlaneSet();
-                planes.SetOrientedBox(new BoundingBox3D(center.Subtract(half), center.Add(half)), Rotation3D.CreateFromEulerAngles(0.12, 0.08, 0.25));
-                planes.Enabled = true; planes.Mode = ClipPlaneSetMode.Box;
-                Viewpoint view = document.CurrentViewpoint.CreateCopy(); view.ClipPlanes = planes;
+                Viewpoint view = document.CurrentViewpoint.CreateCopy();
+                ClipPlaneCompatibility.ConfigureOrientedBox(view,
+                    new BoundingBox3D(center.Subtract(half), center.Add(half)), Rotation3D.CreateFromEulerAngles(0.12, 0.08, 0.25));
                 document.CurrentViewpoint.CopyFrom(view);
                 SectionBoxScope scope; string reason;
                 if (!SectionBoxScope.TryRead(document.ActiveView, out scope, out reason)) throw new Exception(reason);
                 double sourceMetres = UnitConversion.ScaleFactor(document.Units, Units.Meters);
                 Rotation3D exactRotation = new Rotation3D(); BoundingBox3D exactBox = new BoundingBox3D();
-                planes.GetOrientedBox(exactBox, exactRotation);
+                ClipPlaneCompatibility.GetOrientedBox(view, exactBox, exactRotation);
                 File.WriteAllText(Path.Combine(folder,"source-quaternion.txt"),string.Join(",", new[] { exactRotation.A, exactRotation.B, exactRotation.C, exactRotation.D }.Select(v => v.ToString("G17", System.Globalization.CultureInfo.InvariantCulture))));
                 File.AppendAllText(Path.Combine(folder, "entry.txt"), "Box ready\r\n");
                 string beforeFile = document.FileName;
@@ -62,10 +61,10 @@ namespace BIM.Tools.SharingProbe
                 log.AppendLine("SourceUnits=" + document.Units);
                 log.AppendLine("OutputObjects=" + summary.Objects + ";Triangles=" + summary.Triangles + ";Lines=" + summary.Lines + ";Points=" + summary.Points + ";Bytes=" + summary.Bytes);
                 // A second, broader scope exercises model-root traversal and multiple IFC products.
-                ClipPlaneSet broadPlanes = new ClipPlaneSet();
-                broadPlanes.SetOrientedBox(new BoundingBox3D(center.Subtract(new Vector3D(5000,5000,5000)), center.Add(new Vector3D(5000,5000,5000))), Rotation3D.CreateFromEulerAngles(0,0,0.25));
-                broadPlanes.Enabled = true; broadPlanes.Mode = ClipPlaneSetMode.Box;
-                Viewpoint broadView = document.CurrentViewpoint.CreateCopy(); broadView.ClipPlanes = broadPlanes; document.CurrentViewpoint.CopyFrom(broadView);
+                Viewpoint broadView = document.CurrentViewpoint.CreateCopy();
+                ClipPlaneCompatibility.ConfigureOrientedBox(broadView,
+                    new BoundingBox3D(center.Subtract(new Vector3D(5000,5000,5000)), center.Add(new Vector3D(5000,5000,5000))), Rotation3D.CreateFromEulerAngles(0,0,0.25));
+                document.CurrentViewpoint.CopyFrom(broadView);
                 SectionBoxScope broadScope;
                 if (!SectionBoxScope.TryRead(document.ActiveView, out broadScope, out reason)) throw new Exception(reason);
                 SharingSummary broadSummary = new ScopedModelSharingService().Export(document, broadScope,
@@ -74,7 +73,7 @@ namespace BIM.Tools.SharingProbe
                 new ScopedModelSharingService().PackageForTransfer(broadSummary);
                 log.AppendLine("TransferPackageBytes=" + broadSummary.PackageBytes);
                 File.WriteAllText(Path.Combine(folder,"root-scope.json"), broadScope.RawJson);
-                broadPlanes.GetOrientedBox(exactBox, exactRotation);
+                ClipPlaneCompatibility.GetOrientedBox(broadView, exactBox, exactRotation);
                 File.WriteAllText(Path.Combine(folder,"root-quaternion.txt"),string.Join(",", new[] { exactRotation.A, exactRotation.B, exactRotation.C, exactRotation.D }.Select(v => v.ToString("G17", System.Globalization.CultureInfo.InvariantCulture))));
                 document.CurrentViewpoint.CopyFrom(view);
                 File.WriteAllText(Path.Combine(folder, "source-scope.json"), scope.RawJson);
@@ -117,7 +116,7 @@ namespace BIM.Tools.SharingProbe
                 if (!SectionBoxScope.TryRead(document.ActiveView, out scope, out reason)) throw new Exception(reason);
                 document.Models.ResetAllHidden();
                 Viewpoint plain = document.CurrentViewpoint.CreateCopy();
-                ClipPlaneSet off = plain.ClipPlanes; off.Enabled = false; plain.ClipPlanes = off;
+                ClipPlaneCompatibility.SetEnabled(plain, false);
                 document.CurrentViewpoint.CopyFrom(plain);
                 double outputMetres = UnitConversion.ScaleFactor(document.Units, Units.Meters);
                 // This real-model fixture's source geometry uses millimetres; output is in metres.

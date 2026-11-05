@@ -585,13 +585,8 @@ namespace BIM.Tools.Services
                 0.0,
                 0.0,
                 geometry.AngleRadians);
-            ClipPlaneSet clipping = new ClipPlaneSet();
-            clipping.SetOrientedBox(box, rotation);
-            clipping.Mode = ClipPlaneSetMode.Box;
-            clipping.Enabled = true;
-
             Viewpoint viewpoint = document.CurrentViewpoint.CreateCopy();
-            viewpoint.ClipPlanes = clipping;
+            ClipPlaneCompatibility.ConfigureOrientedBox(viewpoint, box, rotation);
             document.CurrentViewpoint.CopyFrom(viewpoint);
         }
 

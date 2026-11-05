@@ -25,7 +25,7 @@ namespace BIM.Tools.WorkflowProbe
             {
                 Document doc = Autodesk.Navisworks.Api.Application.ActiveDocument;
                 log.AppendLine("Product=" + typeof(ScopedModelSharingForm).Assembly.FullName);
-                if (typeof(ScopedModelSharingForm).Assembly.GetName().Version != new Version("1.0.1.0")) throw new Exception("Wrong product assembly loaded.");
+                if (typeof(ScopedModelSharingForm).Assembly.GetName().Version != new Version("1.3.0.0")) throw new Exception("Wrong product assembly loaded.");
                 bool oldAccessorFailed=false;
                 using(VariantData numericId=VariantData.FromInt32(17449713))
                 {
@@ -33,9 +33,11 @@ namespace BIM.Tools.WorkflowProbe
                     CheckIdentifier(numericId,"17449713");
                 }
                 if(!oldAccessorFailed) throw new Exception("Numeric Element ID regression did not reproduce the old accessor failure.");
+#if !NAVISWORKS2024 && !NAVISWORKS2025
                 using(VariantData value=VariantData.FromInt64(4294967296L)) CheckIdentifier(value,"4294967296");
                 using(VariantData value=VariantData.FromNat32(uint.MaxValue)) CheckIdentifier(value,"4294967295");
                 using(VariantData value=VariantData.FromNat64(ulong.MaxValue)) CheckIdentifier(value,"18446744073709551615");
+#endif
                 using(VariantData value=VariantData.FromDisplayString("element-123")) CheckIdentifier(value,"element-123");
                 using(VariantData value=VariantData.FromIdentifierString("unique-456")) CheckIdentifier(value,"unique-456");
                 using(VariantData value=VariantData.FromNone()) CheckIdentifier(value,string.Empty);
@@ -47,10 +49,11 @@ namespace BIM.Tools.WorkflowProbe
                 if (SharingModelDiscovery.DisplayFileName(null,"0.svf?acmsession=private",null,2).Contains("private")) throw new Exception("Session URI leaked.");
                 if (SharingModelDiscovery.DisplayFileName(null,@"C:\models\test model.nwc",null,3) != "test model.nwc") throw new Exception("Local basename failed.");
                 log.AppendLine("ACC filenames and technical-URI suppression=Passed");
-                ModelItem chosen = doc.Models.RootItemDescendantsAndSelf.First(i => i.HasGeometry && i.BoundingBox().Size.X > 10 && i.BoundingBox().Size.Y > 10 && i.BoundingBox().Size.Z > 10);
+                ModelItem chosen = doc.Models.RootItemDescendantsAndSelf.First(i => i.HasGeometry && !i.BoundingBox().IsEmpty);
                 Point3D center = chosen.BoundingBox().Center; Vector3D half = new Vector3D(2500,2500,2500);
-                ClipPlaneSet planes = new ClipPlaneSet(); planes.SetOrientedBox(new BoundingBox3D(center.Subtract(half),center.Add(half)), Rotation3D.CreateFromEulerAngles(.12,.08,.25)); planes.Enabled = true; planes.Mode = ClipPlaneSetMode.Box;
-                Viewpoint view = doc.CurrentViewpoint.CreateCopy(); view.ClipPlanes = planes; doc.CurrentViewpoint.CopyFrom(view);
+                Viewpoint view = doc.CurrentViewpoint.CreateCopy();
+                ClipPlaneCompatibility.ConfigureOrientedBox(view, new BoundingBox3D(center.Subtract(half),center.Add(half)), Rotation3D.CreateFromEulerAngles(.12,.08,.25));
+                doc.CurrentViewpoint.CopyFrom(view);
                 SectionBoxScope scope; string reason; if (!SectionBoxScope.TryRead(doc.ActiveView,out scope,out reason)) throw new Exception(reason);
                 List<SharingSource> all = new List<SharingSource>(), inside = new List<SharingSource>(); SharingModelDiscovery discovery = new SharingModelDiscovery();
                 SharingContentCache cache=null;
@@ -90,8 +93,9 @@ namespace BIM.Tools.WorkflowProbe
                 foreach (double[] change in new[] { new[]{3000.0,0.0,.25},new[]{1800.0,0.0,.25},new[]{1800.0,700.0,.25},new[]{2200.0,0.0,.45},new[]{2500.0,0.0,.25} })
                 {
                     Vector3D size=new Vector3D(change[0],change[0],change[0]); Point3D at=center.Add(new Vector3D(change[1],0,0));
-                    ClipPlaneSet adjusted=new ClipPlaneSet(); adjusted.SetOrientedBox(new BoundingBox3D(at.Subtract(size),at.Add(size)),Rotation3D.CreateFromEulerAngles(.12,.08,change[2])); adjusted.Enabled=true; adjusted.Mode=ClipPlaneSetMode.Box;
-                    Viewpoint changed=doc.CurrentViewpoint.CreateCopy(); changed.ClipPlanes=adjusted; doc.CurrentViewpoint.CopyFrom(changed);
+                    Viewpoint changed=doc.CurrentViewpoint.CreateCopy();
+                    ClipPlaneCompatibility.ConfigureOrientedBox(changed, new BoundingBox3D(at.Subtract(size),at.Add(size)),Rotation3D.CreateFromEulerAngles(.12,.08,change[2]));
+                    doc.CurrentViewpoint.CopyFrom(changed);
                     SectionBoxScope nextScope; if(!SectionBoxScope.TryRead(doc.ActiveView,out nextScope,out reason)) throw new Exception(reason);
                     List<SharingSource> warm=new List<SharingSource>(), cold=new List<SharingSource>(); SharingContentCache next=null;
                     foreach(SharingProgress step in discovery.DetectCached(doc,nextScope,cache,warm,c=>next=c)) { }
@@ -110,7 +114,7 @@ namespace BIM.Tools.WorkflowProbe
                 }
                 SavedViewpoint saved = new SavedViewpoint(doc.CurrentViewpoint.CreateCopy()) { DisplayName = "Coordination sample box" };
                 FolderItem group = new FolderItem { DisplayName = "Custom saved views" }; group.Children.Add(saved); doc.SavedViewpoints.AddCopy(group);
-                Viewpoint noBox = doc.CurrentViewpoint.CreateCopy(); ClipPlaneSet off = new ClipPlaneSet(); off.Enabled = false; noBox.ClipPlanes = off;
+                Viewpoint noBox = doc.CurrentViewpoint.CreateCopy(); ClipPlaneCompatibility.SetEnabled(noBox, false);
                 doc.SavedViewpoints.AddCopy(new SavedViewpoint(noBox) { DisplayName = "View without box" });
                 List<SavedBoxViewpoint> savedViews = new List<SavedBoxViewpoint>(); foreach (SharingProgress step in new SavedBoxViewpoints().Read(doc,savedViews)) { }
                 SavedBoxViewpoint entry = savedViews.Single(v=>v.Path == "Custom saved views / Coordination sample box");

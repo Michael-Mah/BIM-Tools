@@ -27,7 +27,7 @@ namespace BIM.Tools.Clash
             if (!SectionBoxScope.TryRead(document.ActiveView, out scope, out reason)) throw new InvalidOperationException(reason);
             Viewpoint copy = document.ActiveView.CreateViewpointCopy();
             BoundingBox3D bounds = new BoundingBox3D(); Rotation3D rotation = new Rotation3D();
-            copy.ClipPlanes.GetOrientedBox(bounds, rotation); rotation = rotation.Normalize(); json = scope.RawJson;
+            ClipPlaneCompatibility.GetOrientedBox(copy, bounds, rotation); rotation = rotation.Normalize(); json = scope.RawJson;
             return new ClashBox { MinX = scope.Minimum.X, MinY = scope.Minimum.Y, MinZ = scope.Minimum.Z,
                 MaxX = scope.Maximum.X, MaxY = scope.Maximum.Y, MaxZ = scope.Maximum.Z,
                 A = rotation.A, B = rotation.B, C = rotation.C, D = rotation.D };

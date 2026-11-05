@@ -2,6 +2,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Models\SectionBoxDatum.cs"><Link>Shared\Models\SectionBoxDatum.cs</Link></Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Models\SectionBoxScope.cs"><Link>Shared\Models\SectionBoxScope.cs</Link></Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Models\ClipPlaneCompatibility.cs"><Link>Shared\Models\ClipPlaneCompatibility.cs</Link></Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Models\SharingExportProgress.cs"><Link>Shared\Models\SharingExportProgress.cs</Link></Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Models\SharingProgress.cs"><Link>Shared\Models\SharingProgress.cs</Link></Compile>
     <Compile Include="$(MSBuildThisFileDirectory)Services\BoxGeometryClipper.cs"><Link>Shared\Services\BoxGeometryClipper.cs</Link></Compile>

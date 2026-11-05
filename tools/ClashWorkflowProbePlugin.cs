@@ -51,7 +51,11 @@ namespace BIM.Tools.ClashProbe
                     ClashRunSummary run = service.Run(doc, profile, prepared); _log.AppendLine("NativeResults=" + run.Results);
                     Check(run.Results >= 2, "Explicit Run uses native Clash Detective on real overlapping geometry");
                     test = ClashNativeService.Find(tests, profile.NativeTestId); ClashResult result = ClashNativeService.Results(test).First(); Guid resultId = result.Guid;
+#if NAVISWORKS2024 || NAVISWORKS2025
+                    tests.TestsEditResultStatus(result, ClashResultStatus.Approved);
+#else
                     tests.TestsEditResultStatus(result, ClashResultStatus.Approved, null);
+#endif
                     test = ClashNativeService.Find(tests, profile.NativeTestId);
                     tests.TestsAddCopy(test, new ClashResultGroup { DisplayName = "Reviewed group" });
                     test = ClashNativeService.Find(tests, profile.NativeTestId); ClashResultGroup group = test.Children.OfType<ClashResultGroup>().Single();
@@ -99,8 +103,10 @@ namespace BIM.Tools.ClashProbe
                         test = ClashNativeService.Find(tests, profile.NativeTestId);
                         ClashResult first = ClashNativeService.Results(test).First(); Point3D centre = first.Center;
                         double size = doc.GetBoundingBox(true).Size.Length * 0.06;
-                        Viewpoint view = doc.ActiveView.CreateViewpointCopy(); view.ClipPlanes.Enabled = true; view.ClipPlanes.Mode = ClipPlaneSetMode.Box;
-                        view.ClipPlanes.SetOrientedBox(new BoundingBox3D(new Point3D(centre.X - size, centre.Y - size, centre.Z - size), new Point3D(centre.X + size, centre.Y + size, centre.Z + size)), new Rotation3D(0, 0, Math.Sin(Math.PI / 14), Math.Cos(Math.PI / 14)));
+                        Viewpoint view = doc.ActiveView.CreateViewpointCopy();
+                        ClipPlaneCompatibility.ConfigureOrientedBox(view,
+                            new BoundingBox3D(new Point3D(centre.X - size, centre.Y - size, centre.Z - size), new Point3D(centre.X + size, centre.Y + size, centre.Z + size)),
+                            new Rotation3D(0, 0, Math.Sin(Math.PI / 14), Math.Cos(Math.PI / 14)));
                         doc.CurrentViewpoint.CopyFrom(view); string json; profile.Box = ClashNativeService.CaptureBox(doc, out json); profile.SectionBoxJson = json; profile.UseSectionBox = true;
                         string originalClip = doc.ActiveView.GetClippingPlanes(); PreparedClash boxPrepared = Prepare(doc, profile, models);
                         Check(doc.ActiveView.GetClippingPlanes() == originalClip, "Restoring a saved rotated box does not alter active clipping planes");
