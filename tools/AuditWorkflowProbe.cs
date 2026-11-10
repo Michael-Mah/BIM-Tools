@@ -5,6 +5,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
@@ -27,7 +28,9 @@ public sealed class AuditWorkflowProbe : AddInPlugin
         {
             Document document=NavisApplication.ActiveDocument;AuditStore store=new AuditStore(Path.Combine(folder,"baselines"));
             log.AppendLine("API="+typeof(Document).Assembly.GetName().Version+" Phase="+phase);
-            if(phase=="initial")
+            if(phase=="interaction")
+                CheckModelessSave(document,store,folder);
+            else if(phase=="initial")
             {
                 document.AppendFile(args[2]);document.SaveFile(Path.Combine(folder,"live.nwf"));
                 Model[] models=document.Models.ToArray();int selected=document.CurrentSelection.SelectedItems.Count;
@@ -109,6 +112,112 @@ public sealed class AuditWorkflowProbe : AddInPlugin
             File.WriteAllText(Path.Combine(folder,phase+"-report.txt"),log.ToString());return 0;
         }
         catch(Exception error){log.AppendLine(error.ToString());File.WriteAllText(Path.Combine(folder,phase+"-report.txt"),log.ToString());return 1;}
+    }
+    private void CheckModelessSave(Document document, AuditStore store, string folder)
+    {
+        int expectedFiles = Read(document).Files.Count;
+        Check(expectedFiles > 0, "The native test document exposes model files");
+        using (Form peer = new Form { Opacity = 0, ShowInTaskbar = false })
+        using (FederationAuditForm form = new FederationAuditForm(document, store) { Opacity = 0, ShowInTaskbar = false })
+        {
+            peer.Show();
+            IntPtr[] hostWindows = EnabledThreadWindows();
+            bool shown = false;
+            form.Shown += delegate
+            {
+                Check(FindButton(form, "CANCEL CHECK") != null, "Opening audit schedules the initial read and returns");
+                CheckModeless(form, hostWindows, "initial check");
+                shown = true;
+            };
+            form.Show();
+            PumpUntil(() => shown && FindButton(form, "CHECK NOW") != null);
+            FindButton(form, "CHECK NOW").PerformClick();
+            CheckModeless(form, hostWindows, "manual check");
+            Check(FindButton(form, "CANCEL CHECK") != null, "Manual check returns before discovery completes");
+            FindButton(form, "CANCEL CHECK").PerformClick();
+            Check(!AuditWatcher.Suspended && FindButton(form, "CHECK NOW") != null, "Cancel releases the scan and restores the check action");
+
+            OpenSaveReview(form);
+            CheckModeless(form, hostWindows, "save review");
+            foreach (float points in new[] { 9F, 13.5F, 18F })
+            using (Font font = new Font("Segoe UI", points))
+            {
+                Font original = form.Font;
+                form.Font = font;
+                form.ClientSize = new Size(760, 540);
+                form.PerformLayout();
+                System.Windows.Forms.Application.DoEvents();
+                foreach (string label in new[] { "Cancel", "Confirm save" })
+                {
+                    Button button = FindButton(form, label);
+                    Point origin = form.PointToClient(button.PointToScreen(Point.Empty));
+                    Check(form.ClientRectangle.Contains(new Rectangle(origin, button.Size)) &&
+                        button.Height >= TextRenderer.MeasureText(button.Text, button.Font).Height,
+                        label + " is fully visible at 760x540 and " + points + " pt");
+                }
+                form.Font = original;
+            }
+            document.CurrentSelection.CopyFrom(new[] { document.Models.First().RootItem });
+            Check(document.CurrentSelection.SelectedItems.Count == 1, "Navisworks selection can change during the save review");
+            FindButton(form, "Cancel").PerformClick();
+            Check(store.Load(new List<string>()).Count == 0, "Cancel leaves the store untouched");
+
+            OpenSaveReview(form);
+            FindButton(form, "Confirm save").PerformClick();
+            AuditBaseline saved = store.Load(new List<string>()).Single();
+            Check(saved.Snapshot.Files.Count == expectedFiles && saved.Revision == 1, "Confirm writes exactly one complete list");
+            CheckModeless(form, hostWindows, "save completion");
+
+            OpenSaveReview(form);
+            Descendants(form).OfType<CheckBox>().Single(control => control.Visible && control.Text.StartsWith("Replace")).Checked = true;
+            FindButton(form, "Confirm save").PerformClick();
+            AuditBaseline replaced = store.Load(new List<string>()).Single();
+            Check(replaced.Id == saved.Id && replaced.Revision == 2, "Replacement preserves the list identity and increments its revision");
+
+            OpenSaveReview(form);
+            document.SaveFile(Path.Combine(folder, "switched.nwf"));
+            Check(FindButton(form, "Confirm save") == null &&
+                store.Load(new List<string>()).Single().SavedUtc == replaced.SavedUtc,
+                "Changing the document invalidates the review without writing a list");
+            FindButton(form, "CHECK NOW").PerformClick();
+            form.Close();
+            Check(!AuditWatcher.Suspended, "Closing during a check releases the watcher");
+        }
+    }
+    private void CheckModeless(Form form, IntPtr[] hostWindows, string stage)
+    {
+        Check(!form.Modal && form.Enabled &&
+            hostWindows.All(window => !IsWindow(window) || IsWindowEnabled(window)) &&
+            !System.Windows.Forms.Application.OpenForms.Cast<Form>().Any(open => open.Modal),
+            "Navisworks UI thread windows stay enabled during " + stage);
+    }
+    private static Button FindButton(Form form, string text)
+    {
+        return Descendants(form).OfType<Button>().SingleOrDefault(button => button.Visible && button.Text == text);
+    }
+    private static void OpenSaveReview(Form form)
+    {
+        FindButton(form, "Save complete model list").PerformClick();
+        PumpUntil(() => FindButton(form, "Confirm save") != null);
+    }
+    private delegate bool EnumWindowCallback(IntPtr window, IntPtr data);
+    [DllImport("user32.dll")]
+    private static extern bool EnumThreadWindows(uint threadId, EnumWindowCallback callback, IntPtr data);
+    [DllImport("user32.dll")]
+    private static extern bool IsWindowEnabled(IntPtr window);
+    [DllImport("user32.dll")]
+    private static extern bool IsWindow(IntPtr window);
+    [DllImport("kernel32.dll")]
+    private static extern uint GetCurrentThreadId();
+    private static IntPtr[] EnabledThreadWindows()
+    {
+        List<IntPtr> windows = new List<IntPtr>();
+        EnumThreadWindows(GetCurrentThreadId(), (window, data) =>
+        {
+            if (IsWindowEnabled(window)) windows.Add(window);
+            return true;
+        }, IntPtr.Zero);
+        return windows.ToArray();
     }
     private static void PumpUntil(Func<bool> complete)
     {Stopwatch watch=Stopwatch.StartNew();while(!complete()&&watch.ElapsedMilliseconds<20000){System.Windows.Forms.Application.DoEvents();Thread.Sleep(20);}if(!complete())throw new Exception("Automatic check did not complete in time.");}

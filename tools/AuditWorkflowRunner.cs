@@ -19,6 +19,7 @@ internal static class AuditWorkflowRunner
         using(NavisworksApplication app=new NavisworksApplication())
         {
             app.Visible=false;app.DisableProgress();app.OpenFile(args[1],new string[0]);app.AddPluginAssembly(args[3]);
+            if(args.Length==6&&args[5]=="interaction")return Phase(app,args,"interaction")?0:1;
             if(!Phase(app,args,"initial"))return 1;
             if(args.Length==6&&args[5]=="preview")return 0;
             app.OpenFile(Path.Combine(args[4],"live.nwf"),new string[0]);if(!Phase(app,args,"reopen"))return 1;

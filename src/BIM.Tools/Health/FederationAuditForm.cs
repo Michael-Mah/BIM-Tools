@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using Autodesk.Navisworks.Api;
+using BIM.Tools.Models;
 using BIM.Tools.UI;
 using Color = System.Drawing.Color;
 using NavisApplication = Autodesk.Navisworks.Api.Application;
@@ -21,12 +23,19 @@ namespace BIM.Tools.Health
         private readonly DataGridView _grid;
         private readonly ListBox _candidates;
         private readonly Label _summary, _status, _coverage, _baselineInfo, _viewInfo;
-        private readonly Button _map, _export, _assemblies, _children;
+        private readonly Button _map, _export, _assemblies, _children, _check, _save;
+        private readonly TableLayoutPanel _layout;
+        private readonly Timer _scanTimer = new Timer { Interval = 15 };
+        private IEnumerator<SharingProgress> _scan;
+        private AuditSnapshot _scanSnapshot;
+        private System.Action _afterScan;
+        private Control _saveReview;
         private AuditBaseline _baseline;
         private AuditSnapshot _snapshot;
         private string _contextKey;
         private List<AuditRow> _rows = new List<AuditRow>();
-        private bool _ignore, _busy, _childView, _stale, _associationConfirmed, _layoutBusy, _reflowQueued;
+        private string _loadWarning = "";
+        private bool _ignore, _childView, _stale, _associationConfirmed, _layoutBusy, _reflowQueued;
         internal FederationAuditForm(Document document) : this(document, new AuditStore()) { }
         internal FederationAuditForm(Document document, AuditStore store)
         {
@@ -35,7 +44,7 @@ namespace BIM.Tools.Health
             AutoScaleMode = AutoScaleMode.Dpi; AutoScaleDimensions = new SizeF(96,96);
             ClientSize = new Size(1100,760); MinimumSize = new Size(760,540); StartPosition = FormStartPosition.CenterScreen;
             BackColor = BimTheme.Paper; ForeColor = BimTheme.Graphite;
-            TableLayoutPanel layout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 6 };
+            TableLayoutPanel layout = _layout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 6 };
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
             foreach (float height in new[] { 72F,132F,30F }) layout.RowStyles.Add(new RowStyle(SizeType.Absolute,height));
             layout.RowStyles.Add(new RowStyle(SizeType.Percent,100)); layout.RowStyles.Add(new RowStyle(SizeType.Absolute,32)); layout.RowStyles.Add(new RowStyle(SizeType.Absolute,30));
@@ -52,10 +61,12 @@ namespace BIM.Tools.Health
             FlowLayoutPanel actions = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = true };
             actions.Controls.Add(new Label { Text = "Complete list", AutoSize=true, Padding=new Padding(0,7,4,0) });
             _baselines = new ComboBox { Width = 245, DropDownStyle = ComboBoxStyle.DropDownList }; actions.Controls.Add(_baselines);
-            actions.Controls.Add(Action("Save complete model list",205,SaveComplete));
+            _save = Action("Save complete model list",205,SaveComplete);
+            actions.Controls.Add(_save);
             actions.Controls.Add(Action("Watched views…",150,ManageViews));
             actions.Controls.Add(Action("Compare Lists…",145,delegate{using(AuditCompareListsForm dialog=new AuditCompareListsForm(_store,Document.FileName))dialog.ShowDialog(this);}));
-            Button check = Action("CHECK NOW",120,CheckNow); check.BackColor = BimTheme.Brand; check.ForeColor = Color.White; actions.Controls.Add(check);
+            _check = Action("CHECK NOW",120,CheckNow,true);
+            _check.BackColor = BimTheme.Brand; _check.ForeColor = Color.White; actions.Controls.Add(_check);
             _export = Action("Export CSV",100,Export); actions.Controls.Add(_export); settings.Controls.Add(actions,0,0);
             TableLayoutPanel metadata = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount=1 };
             metadata.RowStyles.Add(new RowStyle(SizeType.Percent,100));
@@ -102,13 +113,15 @@ namespace BIM.Tools.Health
                     metadata.ColumnStyles[1].Width=_auto.GetPreferredSize(Size.Empty).Width+16;
                     _grid.ColumnHeadersHeight=Font.Height+12;
                     _grid.RowTemplate.Height=Font.Height+8;
-                    layout.RowStyles[1].Height=actionHeight+Math.Max(46,Font.Height+22);
+                    int metadataHeight = Math.Max(_auto.GetPreferredSize(Size.Empty).Height + _auto.Margin.Vertical, Font.Height);
+                    layout.RowStyles[1].Height = actionHeight + metadataHeight + metadata.Margin.Vertical
+                        + settings.Padding.Vertical + settings.Margin.Vertical + 4;
                     files.RowStyles[0].Height=FlowHeight(filters)+filters.Margin.Vertical;
                     detail.RowStyles[0].Height=Font.Height+6;
                     detail.RowStyles[3].Height=Math.Max(_map.GetPreferredSize(Size.Empty).Height+_map.Margin.Vertical,Font.Height+28);
-                    layout.RowStyles[2].Height=Font.Height+6;
-                    layout.RowStyles[4].Height=Font.Height+10;
-                    layout.RowStyles[5].Height=Font.Height+8;
+                    layout.RowStyles[2].Height = Font.Height + _summary.Padding.Vertical + _summary.Margin.Vertical;
+                    layout.RowStyles[4].Height = Font.Height + _coverage.Padding.Vertical + _coverage.Margin.Vertical;
+                    layout.RowStyles[5].Height = Font.Height + _status.Padding.Vertical + _status.Margin.Vertical;
                 }
                 finally{_layoutBusy=false;}
             };
@@ -131,13 +144,21 @@ namespace BIM.Tools.Health
             _auto.CheckedChanged += delegate { if(!_ignore) Safe(ChangeAuto); };
             _problems.CheckedChanged += delegate { Render(); }; _search.TextChanged += delegate { Render(); };
             _grid.SelectionChanged += delegate { ShowDetails(); }; _candidates.SelectedIndexChanged += delegate { UpdateMappingButton(); };
-            if(Document!=null){Document.Models.CollectionChanged += Changed; Document.FileNameChanged += Changed;}
-            FormClosing += delegate(object sender,FormClosingEventArgs e) { if(_busy)e.Cancel=true; };
-            FormClosed += delegate { if(Document!=null&&!Document.IsDisposed){Document.Models.CollectionChanged-=Changed; Document.FileNameChanged-=Changed;} };
-            Shown += delegate { BimWindowLayout.FitToWorkingArea(this); if(Document!=null)Safe(delegate { Reload(null); CheckNow(); }); };
+            _scanTimer.Tick += AdvanceRead;
+            if (Document != null)
+            {
+                Document.Models.CollectionChanged += Changed;
+                Document.FileNameChanged += Changed;
+                NavisApplication.ActiveDocumentChanged += ActiveDocumentChanged;
+            }
+            Shown += delegate
+            {
+                BimWindowLayout.FitToWorkingArea(this);
+                if (Document != null && _scan == null && _saveReview == null) Safe(CheckNow);
+            };
         }
-        private Button Action(string text,int width,System.Action action)
-        { Button button=new Button { Text=text, AutoSize=true, AutoSizeMode=AutoSizeMode.GrowAndShrink, MinimumSize=new Size(width,Math.Max(32,Font.Height+14)), Padding=new Padding(8,2,8,2), FlatStyle=FlatStyle.Flat, BackColor=BimTheme.Secondary }; button.Click+=delegate { Safe(action); }; return button; }
+        private Button Action(string text,int width,System.Action action,bool allowWhileChecking=false)
+        { Button button=new Button { Text=text, AutoSize=true, AutoSizeMode=AutoSizeMode.GrowAndShrink, MinimumSize=new Size(width,Math.Max(32,Font.Height+14)), Padding=new Padding(8,2,8,2), FlatStyle=FlatStyle.Flat, BackColor=BimTheme.Secondary }; button.Click+=delegate { if(_scan==null||allowWhileChecking)Safe(action); }; return button; }
         private static int FlowHeight(FlowLayoutPanel panel)
         {
             int width=Math.Max(1,panel.ClientSize.Width-panel.Padding.Horizontal),x=0,row=0,total=0;
@@ -154,9 +175,8 @@ namespace BIM.Tools.Health
         }
         private void Safe(System.Action action)
         {
-            if(_busy)return;
             try { EnsureDocument(); action(); }
-            catch(Exception error) { _status.Text=error.Message; BimDialog.ShowError(this,"Federation Audit",error.Message,error.ToString()); }
+            catch(Exception error) { EndSaveReview(); _status.Text=error.Message; }
         }
         private void EnsureDocument()
         { if(Document==null || Document.IsDisposed || !ReferenceEquals(Document,NavisApplication.ActiveDocument)) throw new InvalidOperationException("Open Federation Audit again for the active document."); }
@@ -164,19 +184,92 @@ namespace BIM.Tools.Health
         { return Document==null?"Check loaded models against your saved complete list":"Current model: "+AuditNames.ModelName(Document.FileName,Document.Title); }
         private void Changed(object sender,EventArgs args)
         {
+            InvalidateResults("The model list changed. Check again after loading finishes.");
             string key=AuditNames.DocumentKey(Document.FileName);
-            if(!_busy&&!AuditNames.Same(key,_contextKey)){_contextKey=key;_snapshot=null;_rows.Clear();Reload(null);}
-            _viewInfo.Text=ViewCaption();_stale=true; _status.Text="The model list changed. Check again after loading finishes."; _summary.Text="Previous results need to be checked again."; _export.Enabled=false; _map.Enabled=false;
+            if(!AuditNames.Same(key,_contextKey)){_contextKey=key;_snapshot=null;_rows.Clear();Reload(null);}
+            _viewInfo.Text=ViewCaption();
+        }
+        private void ActiveDocumentChanged(object sender, EventArgs args)
+        {
+            InvalidateResults("The active document changed. Check again for the active model.");
+        }
+        private void InvalidateResults(string message)
+        {
+            StopRead();
+            EndSaveReview();
+            _stale = true;
+            _status.Text = message;
+            _summary.Text = "Previous results need to be checked again.";
+            _export.Enabled = false;
+            _map.Enabled = false;
         }
         internal void SynchronizeContext()
-        { if(Document!=null&&!Document.IsDisposed){if(!AuditNames.Same(AuditNames.DocumentKey(Document.FileName),_contextKey))Changed(null,EventArgs.Empty);else Reload(null);} }
-        private bool ReadCurrent()
+        { if(_scan==null&&_saveReview==null&&Document!=null&&!Document.IsDisposed){if(!AuditNames.Same(AuditNames.DocumentKey(Document.FileName),_contextKey))Changed(null,EventArgs.Empty);else Reload(null);} }
+        private void ReadCurrent(System.Action afterScan)
         {
-            AuditSnapshot snapshot=new AuditSnapshot(); _busy=true; AuditWatcher.Suspended=true;
-            try { if(!SharingProgressForm.Run(this,"Federation Audit · Read model list",new AuditDiscovery().Read(Document,snapshot))) { _status.Text="Check cancelled. The saved complete list was retained."; return false; } }
-            finally { _busy=false; AuditWatcher.Suspended=false; }
-            bool switched=!AuditNames.Same(_contextKey,AuditNames.DocumentKey(snapshot.DocumentPath));
-            _snapshot=snapshot; _contextKey=AuditNames.DocumentKey(snapshot.DocumentPath);_viewInfo.Text=ViewCaption();if(switched)Reload(null);_stale=false; return true;
+            _scanSnapshot = new AuditSnapshot();
+            _scan = new AuditDiscovery().Read(Document, _scanSnapshot).GetEnumerator();
+            _afterScan = afterScan;
+            AuditWatcher.Suspended = true;
+            _check.Text = "CANCEL CHECK";
+            _save.Enabled = _auto.Enabled = _baselines.Enabled = false;
+            _status.Text = "Reading the current model list…";
+            _scanTimer.Start();
+        }
+        private void AdvanceRead(object sender, EventArgs args)
+        {
+            _scanTimer.Stop();
+            IEnumerator<SharingProgress> scan = _scan;
+            if (scan == null) return;
+            try
+            {
+                EnsureDocument();
+                // Yield to Navisworks between batches. Its model API stays on this UI thread.
+                Stopwatch budget = Stopwatch.StartNew();
+                do
+                {
+                    bool hasMore = scan.MoveNext();
+                    if (!ReferenceEquals(scan, _scan)) return;
+                    if (!hasMore)
+                    {
+                        AuditSnapshot snapshot = _scanSnapshot;
+                        System.Action completed = _afterScan;
+                        StopRead();
+                        _snapshot = snapshot;
+                        _contextKey = AuditNames.DocumentKey(snapshot.DocumentPath);
+                        _viewInfo.Text = ViewCaption();
+                        _stale = false;
+                        Recompare();
+                        completed();
+                        return;
+                    }
+                } while (budget.ElapsedMilliseconds < 20);
+                _status.Text = scan.Current.Stage + " · " + scan.Current.Detail;
+                _scanTimer.Start();
+            }
+            catch (Exception error)
+            {
+                StopRead();
+                EndSaveReview();
+                _status.Text = error.Message;
+            }
+        }
+        private void StopRead()
+        {
+            if (_scan == null) return;
+            _scanTimer.Stop();
+            IEnumerator<SharingProgress> scan = _scan;
+            _scan = null;
+            _scanSnapshot = null;
+            _afterScan = null;
+            try { scan.Dispose(); }
+            finally
+            {
+                AuditWatcher.Suspended = false;
+                _check.Text = "CHECK NOW";
+                _save.Enabled = _baselines.Enabled = true;
+                _auto.Enabled = _baseline != null;
+            }
         }
         private void Reload(string id)
         {
@@ -187,7 +280,8 @@ namespace BIM.Tools.Health
             int selected=-1;
             for(int i=0;i<_baselines.Items.Count;i++) { AuditBaseline item=(AuditBaseline)_baselines.Items[i]; if((id!=null&&item.Id==id)||(id==null&&selected<0&&AuditNames.SameDocument(item.Snapshot.DocumentPath,Document.FileName))) selected=i; }
             _baselines.SelectedIndex=selected; _ignore=false; SelectBaseline();
-            if(warnings.Count>0) MessageBox.Show(this,"Some saved complete lists could not be read. Their files were retained.\r\n"+string.Join("\r\n",warnings),"Federation Audit",MessageBoxButtons.OK,MessageBoxIcon.Warning);
+            _loadWarning = warnings.Count == 0 ? "" : " " + warnings.Count + " unreadable saved lists retained.";
+            if (warnings.Count > 0) _status.Text = _loadWarning.TrimStart();
         }
         private void SelectBaseline()
         {
@@ -200,11 +294,20 @@ namespace BIM.Tools.Health
         }
         internal void CheckNow()
         {
+            if (_scan != null)
+            {
+                StopRead();
+                _status.Text = "Check cancelled. The saved complete list was retained.";
+                return;
+            }
             SynchronizeContext();
             if(_baseline!=null&&!AuditNames.SameDocument(_baseline.Snapshot.DocumentPath,Document.FileName))
                 throw new InvalidOperationException("The complete list does not match the open model.\r\n\r\nSaved for: "+AuditNames.ModelName(_baseline.Snapshot.DocumentPath,_baseline.Name)+"\r\nOpen model: "+AuditNames.ModelName(Document.FileName,Document.Title)+"\r\n\r\nReopen Federation Audit to load the matching complete list.");
-            if(!ReadCurrent())return; Recompare();
-            _status.Text="Checked "+DateTime.Now.ToString("HH:mm:ss")+" · "+_snapshot.Files.Count+" file entries. The saved complete list was not changed.";
+            ReadCurrent(delegate
+            {
+                _status.Text = "Checked " + DateTime.Now.ToString("HH:mm:ss") + " · " + _snapshot.Files.Count
+                    + " file entries. The saved complete list was not changed." + _loadWarning;
+            });
         }
         private void Recompare()
         {
@@ -215,7 +318,7 @@ namespace BIM.Tools.Health
         { DateTime value;return DateTime.TryParse(text,null,System.Globalization.DateTimeStyles.RoundtripKind,out value)?"Saved "+value.ToLocalTime().ToString("dd MMM yyyy HH:mm"):"Saved time unavailable"; }
         internal void Receive(AuditBaseline baseline,AuditSnapshot snapshot)
         {
-            if(_busy||Document==null||Document.IsDisposed||!AuditNames.SameDocument(snapshot.DocumentPath,Document.FileName))return;
+            if(_scan!=null||_saveReview!=null||Document==null||Document.IsDisposed||!AuditNames.SameDocument(snapshot.DocumentPath,Document.FileName))return;
             if(_baseline==null||!AuditNames.SameDocument(_baseline.Snapshot.DocumentPath,snapshot.DocumentPath))Reload(baseline.Id);
             if(_baseline==null||_baseline.Id!=baseline.Id)return;
             _baseline=baseline;_snapshot=snapshot;_contextKey=AuditNames.DocumentKey(snapshot.DocumentPath);_viewInfo.Text=ViewCaption();_stale=false;Recompare();_status.Text="Automatic file-list check completed at "+DateTime.Now.ToString("HH:mm:ss")+".";
@@ -262,40 +365,110 @@ namespace BIM.Tools.Health
         private void UpdateMappingButton() { _map.Enabled=!_stale&&_baseline!=null&&Selected()!=null&&Selected().Expected!=null&&_candidates.SelectedItem is AuditCandidate; }
         private void SaveComplete()
         {
-            if(!ReadCurrent())return;
-            Recompare();
-            if(_snapshot.Files.Count==0)throw new InvalidOperationException("No model files are loaded. The complete list was not changed.");
-            using(Form dialog=new Form { Text="Save complete model list", Font=Font, ClientSize=new Size(520,285), StartPosition=FormStartPosition.CenterParent, ShowInTaskbar=false, FormBorderStyle=FormBorderStyle.FixedDialog, MaximizeBox=false, MinimizeBox=false, AutoScaleMode=AutoScaleMode.Dpi })
+            if (!AuditNames.Same(AuditNames.DocumentKey(Document.FileName), _contextKey))
+                Changed(null, EventArgs.Empty);
+            ReadCurrent(ReviewCompleteList);
+        }
+        private void ReviewCompleteList()
+        {
+            AuditSnapshot snapshot = _snapshot;
+            if (snapshot.Files.Count == 0)
+                throw new InvalidOperationException("No model files are loaded. The complete list was not changed.");
+
+            AuditBaseline selected = _baseline;
+            string name = (AuditNames.ModelName(Document.FileName, Document.Title) ?? "").Trim();
+            TableLayoutPanel review = new TableLayoutPanel
             {
-                Label explanation=new Label { Location=new Point(18,15), Size=new Size(480,52), Text="Confirm that all expected models are loaded. Files missing before this list is saved cannot be detected from this list." };
-                TextBox name=new TextBox { Location=new Point(18,75), Width=480, MaxLength=200, ReadOnly=true, Text=AuditNames.ModelName(Document.FileName,Document.Title) };
-                CheckBox replace=new CheckBox { Location=new Point(18,112), Size=new Size(480,30), Text="Replace the selected list and keep its previous version", Enabled=_baseline!=null };
-                CheckBox watch=new CheckBox { Location=new Point(18,148), Size=new Size(480,30), Text="Check this view automatically on open / refresh", Checked=_auto.Checked };
-                Button save=new Button { Location=new Point(290,230), Size=new Size(110,32), Text="Continue", DialogResult=DialogResult.OK };
-                Button cancel=new Button { Location=new Point(408,230), Size=new Size(90,32), Text="Cancel", DialogResult=DialogResult.Cancel };
-                dialog.Controls.AddRange(new Control[]{explanation,name,replace,watch,save,cancel}); dialog.AcceptButton=save; dialog.CancelButton=cancel;
-                // Content sizes follow the host font; Navisworks can supply a larger UI font than Windows.
-                dialog.AutoSize=true;dialog.AutoSizeMode=AutoSizeMode.GrowAndShrink;
-                TableLayoutPanel fields=new TableLayoutPanel{Dock=DockStyle.Top,AutoSize=true,ColumnCount=1,Padding=new Padding(18),Width=520};
-                fields.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,100));
-                explanation.AutoSize=true;explanation.MaximumSize=new Size(480,0);explanation.Margin=new Padding(0,0,0,12);
-                name.Dock=DockStyle.Top;name.Margin=new Padding(0,0,0,10);
-                replace.AutoSize=true;replace.MaximumSize=new Size(480,0);watch.AutoSize=true;watch.MaximumSize=new Size(480,0);
-                FlowLayoutPanel buttons=new FlowLayoutPanel{AutoSize=true,Dock=DockStyle.Fill,FlowDirection=FlowDirection.RightToLeft,Margin=new Padding(0,16,0,0)};
-                foreach(Button button in new[]{cancel,save}){button.AutoSize=true;button.MinimumSize=new Size(100,Font.Height+18);buttons.Controls.Add(button);}
-                fields.Controls.Add(explanation);fields.Controls.Add(name);fields.Controls.Add(replace);fields.Controls.Add(watch);fields.Controls.Add(buttons);
-                dialog.Controls.Clear();dialog.Controls.Add(fields);
-                if(dialog.ShowDialog(this)!=DialogResult.OK)return;
-                AuditBaseline next=new AuditBaseline { Name=name.Text.Trim(), Snapshot=_snapshot.Copy(), AutoCheck=watch.Checked, Revision=replace.Checked?_baseline.Revision+1:1 };
-                if(string.IsNullOrWhiteSpace(next.Name))throw new InvalidOperationException("Enter a name for the complete model list.");
-                if(replace.Checked)next.Id=_baseline.Id;
-                List<AuditRow> changes=replace.Checked?AuditComparison.Compare(_baseline.Snapshot,_snapshot):new List<AuditRow>();
-                string message="Save "+_snapshot.Files.Count(f=>f.Assembly)+" assemblies and "+_snapshot.Files.Count(f=>!f.Assembly)+" contained files as the complete list?";
-                if(replace.Checked)message+="\r\nThis replaces expectations: "+changes.Count(r=>r.Status==AuditStatus.Missing)+" missing, "+changes.Count(r=>r.Status==AuditStatus.New)+" new, "+changes.Count(r=>r.Status==AuditStatus.Review||r.Status==AuditStatus.SourceChanged)+" changed or unresolved. The previous version is retained.";
-                int limited=_snapshot.Files.Count(f=>f.LimitedChildren||!f.Readable); if(limited>0)message+="\r\n"+limited+" entries have limited readable coverage. Only exposed files can be checked.";
-                if(MessageBox.Show(this,message,"Confirm complete model list",MessageBoxButtons.YesNo,MessageBoxIcon.Warning,MessageBoxDefaultButton.Button2)!=DialogResult.Yes)return;
-                _store.SetAutomatic(next,next.AutoCheck); Reload(next.Id); AuditWatcher.Queue(); _status.Text="Complete list saved independently of the Navisworks document.";
-            }
+                Dock = DockStyle.Fill, Padding = new Padding(Font.Height),
+                ColumnCount = 1, RowCount = 5
+            };
+            review.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            review.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            review.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            for (int row = 2; row < 5; row++) review.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            Label title = new Label { Text = "Save complete model list", AutoSize = true, ForeColor = BimTheme.Brand };
+            TextBox details = new TextBox
+            {
+                Dock = DockStyle.Fill, Multiline = true, ReadOnly = true,
+                ScrollBars = ScrollBars.Vertical, BackColor = Color.White
+            };
+            CheckBox replace = new CheckBox
+            {
+                Text = "Replace the selected list and keep its previous version",
+                AutoSize = true, Enabled = selected != null
+            };
+            CheckBox watch = new CheckBox
+            {
+                Text = "Check this view automatically on open / refresh",
+                AutoSize = true, Checked = _auto.Checked,
+                Enabled = !string.IsNullOrEmpty(AuditNames.DocumentKey(snapshot.DocumentPath))
+            };
+            int assemblies = snapshot.Files.Count(file => file.Assembly);
+            int limited = snapshot.Files.Count(file => file.LimitedChildren || !file.Readable);
+            string message = "Model: " + name + "\r\n\r\n"
+                + "Confirm that all expected models are loaded. Files missing before this list is saved cannot be detected from this list.\r\n\r\n"
+                + "Save " + assemblies + " assemblies and " + (snapshot.Files.Count - assemblies) + " contained files as the complete list?";
+            if (limited > 0)
+                message += "\r\n\r\n" + limited + " entries have limited readable coverage. Only exposed files can be checked.";
+            details.Text = message;
+            replace.CheckedChanged += delegate
+            {
+                details.Text = replace.Checked ? message + "\r\n\r\n" + ReplacementSummary(selected, snapshot) : message;
+            };
+            Button cancel = Action("Cancel", 100, delegate
+            {
+                EndSaveReview();
+                _status.Text = "Save cancelled. The complete list was not changed.";
+            });
+            Button save = Action("Confirm save", 120, delegate
+            {
+                if (_stale || !AuditNames.Same(AuditNames.DocumentKey(Document.FileName), AuditNames.DocumentKey(snapshot.DocumentPath)))
+                    throw new InvalidOperationException("The model list changed. Review it again before saving.");
+                if (replace.Checked && !_store.ForDocument(snapshot.DocumentPath, new List<string>())
+                    .Any(list => list.Id == selected.Id && list.SavedUtc == selected.SavedUtc))
+                    throw new InvalidOperationException("The selected complete list changed. Review it again before replacing it.");
+                AuditBaseline next = new AuditBaseline
+                {
+                    Name = name, Snapshot = snapshot.Copy(),
+                    Revision = replace.Checked ? selected.Revision + 1 : 1
+                };
+                if (replace.Checked) next.Id = selected.Id;
+                _store.SetAutomatic(next, watch.Checked);
+                EndSaveReview();
+                Reload(next.Id);
+                AuditWatcher.Queue();
+                _status.Text = "Complete list saved independently of the Navisworks document.";
+            });
+            save.BackColor = BimTheme.Brand;
+            save.ForeColor = Color.White;
+            FlowLayoutPanel buttons = new FlowLayoutPanel { AutoSize = true, Anchor = AnchorStyles.Right, WrapContents = false };
+            buttons.Controls.AddRange(new Control[] { cancel, save });
+            review.Controls.Add(title, 0, 0);
+            review.Controls.Add(details, 0, 1);
+            review.Controls.Add(replace, 0, 2);
+            review.Controls.Add(watch, 0, 3);
+            review.Controls.Add(buttons, 0, 4);
+            _saveReview = review;
+            Controls.Add(review);
+            _layout.Hide();
+            CancelButton = cancel;
+            cancel.Focus();
+        }
+        private static string ReplacementSummary(AuditBaseline selected, AuditSnapshot snapshot)
+        {
+            List<AuditRow> changes = AuditComparison.Compare(selected.Snapshot, snapshot);
+            return "This replaces expectations: " + changes.Count(row => row.Status == AuditStatus.Missing)
+                + " missing, " + changes.Count(row => row.Status == AuditStatus.New)
+                + " new, " + changes.Count(row => row.Status == AuditStatus.Review || row.Status == AuditStatus.SourceChanged)
+                + " changed or unresolved. The previous version is retained.";
+        }
+        private void EndSaveReview()
+        {
+            if (_saveReview == null) return;
+            CancelButton = null;
+            _saveReview.Dispose();
+            _saveReview = null;
+            _layout.Show();
         }
         private void ReviewMapping()
         {
@@ -322,7 +495,25 @@ namespace BIM.Tools.Health
                 if(dialog.ShowDialog(this)==DialogResult.OK){AuditComparison.Export(dialog.FileName,_baseline,_snapshot,_rows);_status.Text="Federation Audit report exported.";}
         }
         protected override void Dispose(bool disposing)
-        { if(disposing) { foreach(PictureBox picture in Controls.OfType<TableLayoutPanel>().SelectMany(p=>p.Controls.OfType<Panel>()).SelectMany(p=>p.Controls.OfType<PictureBox>())) if(picture.Image!=null)picture.Image.Dispose(); } base.Dispose(disposing); }
+        {
+            if (disposing && !IsDisposed)
+            {
+                StopRead();
+                _scanTimer.Dispose();
+                if (Document != null)
+                {
+                    NavisApplication.ActiveDocumentChanged -= ActiveDocumentChanged;
+                    if (!Document.IsDisposed)
+                    {
+                        Document.Models.CollectionChanged -= Changed;
+                        Document.FileNameChanged -= Changed;
+                    }
+                }
+                foreach (PictureBox picture in _layout.Controls.OfType<Panel>().SelectMany(panel => panel.Controls.OfType<PictureBox>()))
+                    if (picture.Image != null) picture.Image.Dispose();
+            }
+            base.Dispose(disposing);
+        }
     }
     internal static class FederationAuditWindow
     {
@@ -335,7 +526,7 @@ namespace BIM.Tools.Health
             if(_form!=null&&!_form.IsDisposed)
             { if(ReferenceEquals(document,_form.Document)){_form.SynchronizeContext();_form.WindowState=FormWindowState.Normal;_form.Show();_form.Activate();return;} _form.Close(); if(!_form.IsDisposed)return; }
             FederationAuditForm form=new FederationAuditForm(document);_form=form;
-            form.FormClosed+=delegate {if(ReferenceEquals(_form,form))_form=null;form.Dispose();};form.Show();form.Activate();
+            form.FormClosed+=delegate {if(ReferenceEquals(_form,form))_form=null;};form.Show();form.Activate();
         }
     }
 }
