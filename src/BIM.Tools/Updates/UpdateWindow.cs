@@ -84,7 +84,7 @@ namespace BIM.Tools.Updates
             layout.Controls.Add(_status, 0, 1);
             layout.Controls.Add(new Label
             {
-                Text = "Private repository access token (Contents: read). Saved encrypted for this Windows user.",
+                Text = "Optional GitHub token for higher API limits. Leave blank for public updates.",
                 AutoSize = true, MaximumSize = new Size(500, 0)
             }, 0, 2);
             _token = new TextBox { Dock = DockStyle.Top, UseSystemPasswordChar = true };
@@ -106,7 +106,7 @@ namespace BIM.Tools.Updates
             layout.Controls.Add(actions, 0, 5);
             Controls.Add(layout);
             try { _settings = UpdateSettings.Load(); }
-            catch { _settings = new UpdateSettings(); _status.Text = "Update settings could not be read. Enter your access token again."; }
+            catch { _settings = new UpdateSettings(); _status.Text = "Update settings could not be read. Public updates can be checked without a token."; }
             _token.Text = _settings.Token;
             _automatic.Checked = _settings.Automatic;
             // Establish the UI dispatcher before any network work starts.
@@ -121,13 +121,6 @@ namespace BIM.Tools.Updates
         internal async void Check(bool automatic)
         {
             if (_working || (automatic && !_settings.Automatic)) return;
-            if (automatic && !_settings.Configured)
-            {
-                _status.Text = "Enable update checks on this computer by entering a GitHub token with Contents read access to "
-                    + UpdateClient.Repository + ", then click Save / Check.";
-                Show();
-                return;
-            }
             Busy(true);
             _update = null;
             try

@@ -13,7 +13,6 @@ namespace BIM.Tools.Updates
     internal sealed class UpdateSettings
     {
         internal bool Automatic = true;
-        internal bool Configured;
         internal string Token = "";
         private static readonly string FileName = Path.Combine(EditionBrand.SettingsRoot, "updates.xml");
 
@@ -24,7 +23,6 @@ namespace BIM.Tools.Updates
             XmlDocument xml = new XmlDocument { XmlResolver = null };
             xml.Load(FileName);
             settings.Automatic = xml.DocumentElement.GetAttribute("automatic") != "false";
-            settings.Configured = true;
             string encrypted = xml.DocumentElement.GetAttribute("credential");
             if (encrypted.Length > 0)
                 settings.Token = Encoding.UTF8.GetString(ProtectedData.Unprotect(
@@ -47,7 +45,6 @@ namespace BIM.Tools.Updates
                 xml.Save(temporary);
                 if (File.Exists(FileName)) File.Replace(temporary, FileName, null);
                 else File.Move(temporary, FileName);
-                Configured = true;
             }
             finally { if (File.Exists(temporary)) File.Delete(temporary); }
         }
@@ -204,7 +201,7 @@ namespace BIM.Tools.Updates
                     HttpStatusCode status = response.StatusCode;
                     response.Dispose();
                     if (status == HttpStatusCode.NotFound || status == HttpStatusCode.Unauthorized || status == HttpStatusCode.Forbidden)
-                        throw new InvalidOperationException("GitHub access failed. For this private repository, enter a token with Contents read access to " + Repository + ". Check token expiry and GitHub rate limits.");
+                        throw new InvalidOperationException("GitHub access failed. Try again later if the API limit was reached. Clear an expired optional token to check public updates without signing in.");
                 }
                 throw new InvalidOperationException("Could not reach GitHub. Check your network and try again.");
             }

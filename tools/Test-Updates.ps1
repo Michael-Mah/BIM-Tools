@@ -25,7 +25,8 @@ foreach ($current in $false,$true) {
     if ($current) { $arguments += '/define:CURRENT_VERSION' }
     & $compiler @arguments $sources
     if ($LASTEXITCODE -ne 0) { throw 'Update test compilation failed' }
-    if ($Live -and -not $env:BIM_UPDATE_TEST_TOKEN) { throw 'Live checks require BIM_UPDATE_TEST_TOKEN in this process environment.' }
-    & $exe $api (Join-Path $distributionFolder 'update.json')
+    $testArguments = @($api, (Join-Path $distributionFolder 'update.json'))
+    if ($Live) { $testArguments += 'live' }
+    & $exe @testArguments
     if ($LASTEXITCODE -ne 0) { throw 'Update checks failed' }
 }

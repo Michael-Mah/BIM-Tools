@@ -6,9 +6,9 @@ using System.Web.Script.Serialization;
 using BIM.Tools.Updates;
 
 #if CURRENT_VERSION
-[assembly: AssemblyVersion("1.4.0.0")]
+[assembly: AssemblyVersion("1.4.1.0")]
 #else
-[assembly: AssemblyVersion("1.3.0.0")]
+[assembly: AssemblyVersion("1.4.0.0")]
 #endif
 
 internal static class UpdateTests
@@ -59,16 +59,16 @@ internal static class UpdateTests
         manifest.sha256 = hash;
         Reject(() => UpdateClient.ValidateManifest(manifest, version, null, 2024), "Missing installer cannot trigger an update");
         string token = Environment.GetEnvironmentVariable("BIM_UPDATE_TEST_TOKEN");
-        if (!string.IsNullOrEmpty(token))
+        if (args.Length > 2 && args[2] == "live")
         {
             AvailableUpdate update = UpdateClient.Check(token);
 #if CURRENT_VERSION
-            Check(update == null, "Installed 1.4.0 does not offer the same release again");
+            Check(update == null, "The current version does not offer the same release again");
 #else
-            Check(update != null && update.Version == version, "A 1.3.0 computer discovers the private 1.4.0 GitHub release");
+            Check(update != null && update.Version == version, "An older computer discovers the latest GitHub release");
             string installer = UpdateClient.Download(update, token);
             Check(File.Exists(installer) && new FileInfo(installer).Length == manifest.size,
-                "Private release download passes SHA256 and length validation");
+                "Release download passes SHA256 and length validation");
             string original = update.Manifest.sha256;
             update.Manifest.sha256 = new string('0', 64);
             Reject(() => UpdateClient.Download(update, token), "Tampered download checksum prevents installation");

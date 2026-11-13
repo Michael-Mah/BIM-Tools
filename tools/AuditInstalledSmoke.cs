@@ -17,8 +17,8 @@ public sealed class AuditInstalledSmoke : AddInPlugin
             string folder=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"BIM-Tools","FederationBaselines");
             string[] before=Directory.Exists(folder)?Directory.GetFiles(folder):new string[0];
             CommandHandlerPlugin commands=NavisApplication.Plugins.FindPlugin("BIM.Tools.Commands.BIMT").LoadPlugin() as CommandHandlerPlugin;
-            if(commands==null||commands.GetType().Assembly.GetName().Version.ToString()!="1.4.0.0")throw new Exception("Installed command assembly is not 1.4.0.");
-            log.AppendLine("PASS Installed BIM Tools command assembly is 1.4.0");
+            if(commands==null||commands.GetType().Assembly.GetName().Version.ToString()!="1.4.1.0")throw new Exception("Installed command assembly is not 1.4.1.");
+            log.AppendLine("PASS Installed BIM Tools command assembly is 1.4.1");
             EventWatcherPluginRecord updates = NavisApplication.Plugins.FindPlugin("BIM.Tools.Updates.BIMT") as EventWatcherPluginRecord;
             if (updates == null || updates.LoadedPlugin == null) throw new Exception("Update watcher did not load at startup.");
             if (!commands.CanExecuteCommand("BIM_CHECK_UPDATES").IsEnabled) throw new Exception("Update command is unavailable.");
