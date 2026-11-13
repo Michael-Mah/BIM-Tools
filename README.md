@@ -2,7 +2,17 @@
 
 Company-neutral Navisworks **Federation Audit**, **Section Box**, **Model Sharing** and **Clash Setup**, targeting Manage 2024/2025/2026/2027.
 
-Download the installer from [1.3.0 Releases](https://github.com/Michael-Mah/BIM-Tools/releases/tag/v1.3.0). See the [model sharing guide](docs/MODEL-SHARING.md), [Clash Setup guide](docs/CLASH-SETUP.md) and [1.3.0 validation record](docs/VALIDATION-1.3.0.md). Close Navisworks before installation.
+Download the installer from [latest Releases](https://github.com/Michael-Mah/BIM-Tools/releases/latest). See the [model sharing guide](docs/MODEL-SHARING.md), [Clash Setup guide](docs/CLASH-SETUP.md) and [1.3.0 validation record](docs/VALIDATION-1.3.0.md). Close Navisworks before installation.
+
+## Updates across computers
+
+Install 1.4.0 once on each computer to enable update checks. Under **BIM Tools → Check Updates**, enter a GitHub fine-grained personal access token with **Contents: read** access to the private `Michael-Mah/BIM-Tools` repository and click **Save / Check**. Each Windows user stores their own encrypted credential locally. Startup checks run in the background and notify you when a newer stable GitHub Release includes your Navisworks year. You can disable startup checks and check manually.
+
+Choose **Download / Install** to download and verify the installer against the release's SHA-256 manifest. The installer waits for you to save your work and close all Navisworks windows, then installs the update. Restart Navisworks afterward. Offline and access errors can be retried through **Check Updates**.
+
+For every distributable update, increase the assembly, bundle and installer versions, run `Build-Release.ps1`, and publish the generated installer and `update.json` together in a stable GitHub Release. Committing to main alone does not publish an installable update. The update manifest lists only years actually compiled in that build.
+
+After validating and pushing the source to main, put `release-notes.txt` in the distribution folder and run `./tools/Publish-Release.ps1 -Distribution <distribution-folder>`. Publishing stages all assets in a draft before making the release available to clients.
 
 `Shared/` is the authoritative source for datum/box geometry, content discovery, clipping, export, estimates and their UI. Products import `Shared/BIM.Tools.Shared.projitems`; each product supplies its own `EditionBrand.cs`. This generic product includes a model-name based clash setup that remembers selections outside the NWF; company editions retain their separate model rules, workflow and history.
 

@@ -7,7 +7,7 @@ $checked = 0
 foreach ($root in $RibbonRoots) {
     [xml] $ribbon = Get-Content -LiteralPath (Join-Path $root 'BimToolsRibbon.xaml') -Raw
     $buttons = @($ribbon.SelectNodes('//*[@Image or @LargeImage]'))
-    if ($buttons.Count -ne 4) { throw "Expected four tool buttons in $root" }
+    if ($buttons.Count -ne 5) { throw "Expected five tool buttons in $root" }
     $panels = @($ribbon.SelectNodes('//*[local-name()="RibbonPanelSource"]'))
     if ($panels[0].Title -ne 'Health' -or $buttons[0].Id -ne 'BIM_OPEN_FEDERATION_AUDIT') { throw "Federation Audit must be first, under Health: $root" }
     foreach ($button in $buttons) {

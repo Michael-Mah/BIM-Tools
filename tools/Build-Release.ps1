@@ -112,5 +112,13 @@ $hashes = foreach ($file in $files) {
     '{0}  {1}' -f (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash, $file.Name
 }
 $hashes | Set-Content -LiteralPath (Join-Path $distributionDir 'SHA256SUMS.txt') -Encoding UTF8
+$updateManifest = [ordered]@{
+    version = $releaseVersion
+    supportedYears = @($Versions)
+    installerName = [IO.Path]::GetFileName($setupExe)
+    sha256 = (Get-FileHash -LiteralPath $setupExe -Algorithm SHA256).Hash.ToLowerInvariant()
+    size = (Get-Item -LiteralPath $setupExe).Length
+}
+$updateManifest | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $distributionDir 'update.json') -Encoding UTF8
 Write-Output "Release built for Navisworks Manage: $($Versions -join ', ')"
 Write-Output "Distribution: $distributionDir"

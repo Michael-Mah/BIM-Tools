@@ -8,5 +8,8 @@
       <local:NWRibbonButton Id="BIM_OPEN_MODEL_SHARING" Size="Large" ShowText="True" Text="Model&#xD;&#xA;Sharing" Image="Images/BimModelSharing16.png" LargeImage="Images/BimModelSharing32.png" Orientation="Vertical" />
       <local:NWRibbonButton Id="BIM_OPEN_CLASH_SETUP" Size="Large" ShowText="True" Text="Clash&#xD;&#xA;Setup" Image="Images/BimClash16.png" LargeImage="Images/BimClash32.png" Orientation="Vertical" />
     </RibbonPanelSource></RibbonPanel>
+    <RibbonPanel><RibbonPanelSource Title="BIM Tools">
+      <local:NWRibbonButton Id="BIM_CHECK_UPDATES" Size="Large" ShowText="True" Text="Check&#xD;&#xA;Updates" Image="Images/BimTools16.png" LargeImage="Images/BimTools32.png" Orientation="Vertical" />
+    </RibbonPanelSource></RibbonPanel>
   </RibbonTab>
 </RibbonControl>

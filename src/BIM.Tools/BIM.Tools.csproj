@@ -59,6 +59,8 @@
     <Reference Include="mscorlib" Condition="'$(FrameworkReferenceRoot)' != ''" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
@@ -86,6 +88,7 @@
   <ItemGroup><Compile Include="Plugin\BimToolsPlugin.cs" /><Compile Include="EditionBrand.cs" /><Compile Include="Properties\AssemblyInfo.cs" /></ItemGroup>
   <ItemGroup><Compile Include="Clash\*.cs" /></ItemGroup>
   <ItemGroup><Compile Include="Health\*.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="Updates\*.cs" /></ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Ribbon\Images\BimFederationAudit64.png"><LogicalName>BIM.FederationAuditIcon</LogicalName></EmbeddedResource>

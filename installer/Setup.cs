@@ -11,33 +11,44 @@ using System.Xml;
 [assembly: AssemblyDescription("Installer for version-specific BIM Tools Navisworks Manage add-ins")]
 [assembly: AssemblyCompany("BIM Tools")]
 [assembly: AssemblyProduct("BIM Tools")]
-[assembly: AssemblyVersion("1.3.0.0")]
-[assembly: AssemblyFileVersion("1.3.0.0")]
+[assembly: AssemblyVersion("1.4.0.0")]
+[assembly: AssemblyFileVersion("1.4.0.0")]
 
 namespace BimTools.Setup
 {
     internal static class Program
     {
         [STAThread]
-        private static void Main()
+        private static void Main(string[] args)
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new SetupForm());
+            using (System.Threading.Mutex single = new System.Threading.Mutex(false, "Local\\BIM.Tools.Setup"))
+            {
+                bool acquired;
+                try { acquired = single.WaitOne(0); }
+                catch (System.Threading.AbandonedMutexException) { acquired = true; }
+                if (!acquired) return;
+                try { Application.Run(new SetupForm(Array.IndexOf(args, "/wait") >= 0)); }
+                finally { single.ReleaseMutex(); }
+            }
         }
     }
 
     internal sealed class SetupForm : Form
     {
-        private const string SetupVersion = "1.3.0";
+        private const string SetupVersion = "1.4.0";
         private const string ResourceName = "BIM.Tools.Bundle.zip";
         private readonly Button _installButton;
         private readonly Button _closeButton;
         private readonly Label _status;
         private readonly string _supportedVersions;
+        private readonly bool _waitForNavisworks;
+        private Timer _waitTimer;
 
-        public SetupForm()
+        public SetupForm(bool waitForNavisworks = false)
         {
+            _waitForNavisworks = waitForNavisworks;
             SuspendLayout();
             _supportedVersions = string.Join(" / ", GetSupportedVersions());
             Text = "BIM Tools Setup";
@@ -158,6 +169,21 @@ namespace BimTools.Setup
         {
             base.OnShown(e);
             BIM.Tools.UI.BimWindowLayout.FitToWorkingArea(this);
+            if (_waitForNavisworks)
+            {
+                _installButton.Enabled = false;
+                _status.Text = "请保存工作并关闭 Navisworks，随后自动安装。";
+                _status.AutoEllipsis = true;
+                _waitTimer = new Timer { Interval = 1000 };
+                _waitTimer.Tick += delegate
+                {
+                    if (Process.GetProcessesByName("Roamer").Length != 0) return;
+                    _waitTimer.Stop();
+                    InstallClicked(this, EventArgs.Empty);
+                };
+                FormClosed += delegate { _waitTimer.Dispose(); };
+                _waitTimer.Start();
+            }
         }
 
         private void InstallClicked(object sender, EventArgs e)
@@ -214,6 +240,28 @@ namespace BimTools.Setup
         }
 
         private static void InstallBundle(string installFolder)
+        {
+            string destination = Path.GetFullPath(installFolder).TrimEnd(Path.DirectorySeparatorChar);
+            string id = Guid.NewGuid().ToString("N");
+            string staging = destination + ".stage-" + id;
+            string backupRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "BIM-Tools", "InstallBackups");
+            Directory.CreateDirectory(backupRoot);
+            string backup = Path.Combine(backupRoot, "bundle-" + id);
+            ExtractBundle(staging);
+            if (Process.GetProcessesByName("Roamer").Length > 0)
+                throw new InvalidOperationException("请关闭 Navisworks 后再安装。");
+            bool existed = Directory.Exists(destination);
+            if (existed) Directory.Move(destination, backup);
+            try { Directory.Move(staging, destination); }
+            catch
+            {
+                if (existed) Directory.Move(backup, destination);
+                throw;
+            }
+        }
+
+        private static void ExtractBundle(string installFolder)
         {
             string fullInstallFolder = Path.GetFullPath(installFolder)
                 .TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;

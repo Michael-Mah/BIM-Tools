@@ -17,8 +17,25 @@ public sealed class AuditInstalledSmoke : AddInPlugin
             string folder=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"BIM-Tools","FederationBaselines");
             string[] before=Directory.Exists(folder)?Directory.GetFiles(folder):new string[0];
             CommandHandlerPlugin commands=NavisApplication.Plugins.FindPlugin("BIM.Tools.Commands.BIMT").LoadPlugin() as CommandHandlerPlugin;
-            if(commands==null||commands.GetType().Assembly.GetName().Version.ToString()!="1.3.0.0")throw new Exception("Installed command assembly is not 1.3.0.");
-            log.AppendLine("PASS Installed BIM Tools command assembly is 1.3.0");
+            if(commands==null||commands.GetType().Assembly.GetName().Version.ToString()!="1.4.0.0")throw new Exception("Installed command assembly is not 1.4.0.");
+            log.AppendLine("PASS Installed BIM Tools command assembly is 1.4.0");
+            EventWatcherPluginRecord updates = NavisApplication.Plugins.FindPlugin("BIM.Tools.Updates.BIMT") as EventWatcherPluginRecord;
+            if (updates == null || updates.LoadedPlugin == null) throw new Exception("Update watcher did not load at startup.");
+            if (!commands.CanExecuteCommand("BIM_CHECK_UPDATES").IsEnabled) throw new Exception("Update command is unavailable.");
+            log.AppendLine("PASS Update watcher loads at startup and Check Updates is available");
+            if (commands.ExecuteCommand("BIM_CHECK_UPDATES") != 0) throw new Exception("Update command failed.");
+            Application.DoEvents();
+            Form updateForm = Application.OpenForms.Cast<Form>().Single(open => open.Text == "BIM Tools · Updates");
+            if (updateForm.Modal || !updateForm.Enabled) throw new Exception("Update settings block the host.");
+            foreach (string label in new[] { "Save / Check", "Download / Install", "Later" })
+            {
+                Button button = Descendants(updateForm).OfType<Button>().Single(control => control.Text == label);
+                System.Drawing.Point origin = updateForm.PointToClient(button.PointToScreen(System.Drawing.Point.Empty));
+                if (!button.Visible || !updateForm.ClientRectangle.Contains(new System.Drawing.Rectangle(origin, button.Size)))
+                    throw new Exception("Update action is clipped: " + label);
+            }
+            updateForm.Dispose();
+            log.AppendLine("PASS Check Updates opens modelessly with all actions visible");
             EventWatcherPluginRecord watcher=NavisApplication.Plugins.FindPlugin("BIM.FederationAudit.Watcher.BIMT") as EventWatcherPluginRecord;
             if(watcher==null||watcher.LoadedPlugin==null)throw new Exception("Installed automatic watcher did not load at startup.");
             log.AppendLine("PASS Installed Federation Audit watcher loads at startup");
