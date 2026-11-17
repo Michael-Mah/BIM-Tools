@@ -86,7 +86,7 @@ namespace BIM.Tools.Updates
             layout.Controls.Add(_status, 0, 1);
             layout.Controls.Add(new Label
             {
-                Text = "Optional GitHub token for higher API limits. Leave blank for public updates.",
+                Text = "No GitHub account or token is required. Leave this box blank. Optional token: advanced use only.",
                 AutoSize = true, MaximumSize = new Size(500, 0)
             }, 0, 2);
             _token = new TextBox { Dock = DockStyle.Top, UseSystemPasswordChar = true };
@@ -94,7 +94,7 @@ namespace BIM.Tools.Updates
             _automatic = new CheckBox { Text = "Check automatically when Navisworks starts", AutoSize = true };
             layout.Controls.Add(_automatic, 0, 4);
             FlowLayoutPanel actions = new FlowLayoutPanel { AutoSize = true, Anchor = AnchorStyles.Right, WrapContents = false };
-            _check = new Button { Text = "Save / Check", AutoSize = true };
+            _check = new Button { Text = "Check for Updates", AutoSize = true };
             _install = new Button { Text = "Download / Install", AutoSize = true, Enabled = false };
             Button later = new Button { Text = "Later", AutoSize = true };
             _check.Click += delegate { Check(false); };

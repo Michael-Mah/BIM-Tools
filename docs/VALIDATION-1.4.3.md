@@ -1,0 +1,9 @@
+# BIM Tools 1.4.3 — restore 2026 distribution
+
+Validated on 2026-11-17. The 1.4.2 source already declares the 2026 host; its published installer omitted that year. This release compiles the unchanged API-compatible product for 2026 and 2027 and updates the version so existing 1.4.2 installations can discover it. Update settings explicitly state that no GitHub account or token is required.
+
+59 inventory checks pass. Update-manifest tests pass for both 2026 and 2027, for current and older clients (9 checks per run), including host support, version comparisons, installer size, checksum validation and missing assets. Test-Updates now accepts 2026 instead of hard-coding it as an unsupported host. Release builds succeed for both installed SDKs. The 2026 full native workflow did not finish in this session; no successful full native run is claimed.
+
+The combined installer preserves the already published 1.4.2 binaries for 2024 and 2025; those hosts were not recompiled because their matching API files are unavailable locally. Their component versions remain 1.4.2. The newly built 2026/2027 components are 1.4.3. Automatic update eligibility lists 2026/2027 only, avoiding repeated 1.4.3 offers to preserved 1.4.2 components. All 80 ribbon resource references in the combined four-year package pass size/DPI validation.
+
+The user has a live 2027 project open. This session publishes the installer without closing that project or replacing its loaded plugin files. Installation requires saving and closing Navisworks, followed by a restart. Checking for updates alone does not install automatically.

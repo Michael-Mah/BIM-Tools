@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory=$true)][string]$Distribution,
-    [ValidateSet(2024,2025,2027)][int]$HostVersion = 2024,
+    [ValidateSet(2024,2025,2026,2027)][int]$HostVersion = 2024,
     [switch]$Live
 )
 $ErrorActionPreference = 'Stop'

@@ -6,7 +6,7 @@ using System.Web.Script.Serialization;
 using BIM.Tools.Updates;
 
 #if CURRENT_VERSION
-[assembly: AssemblyVersion("1.4.2.0")]
+[assembly: AssemblyVersion("1.4.3.0")]
 #else
 [assembly: AssemblyVersion("1.4.1.0")]
 #endif
@@ -46,18 +46,18 @@ internal static class UpdateTests
             File.ReadAllText(args[1]).TrimStart('\uFEFF'));
         Version version = UpdateClient.ParseVersion(manifest.version);
         ReleaseAsset asset = new ReleaseAsset { id = 1, name = manifest.installerName, size = manifest.size };
-        UpdateClient.ValidateManifest(manifest, version, asset, 2024);
-        Check(true, "Built installer manifest includes the 2024 host");
-        Reject(() => UpdateClient.ValidateManifest(manifest, version, asset, 2026), "Unsupported host year cannot download this release");
+        UpdateClient.ValidateManifest(manifest, version, asset, UpdateClient.HostYear);
+        Check(true, "Built installer manifest includes the tested host");
+        Reject(() => UpdateClient.ValidateManifest(manifest, version, asset, 2099), "Unsupported host year cannot download this release");
         asset.size++;
-        Reject(() => UpdateClient.ValidateManifest(manifest, version, asset, 2024), "Mismatched installer size is rejected");
+        Reject(() => UpdateClient.ValidateManifest(manifest, version, asset, UpdateClient.HostYear), "Mismatched installer size is rejected");
         asset.size--;
-        Reject(() => UpdateClient.ValidateManifest(manifest, new Version(9, 0, 0, 0), asset, 2024), "Release tag and manifest must agree");
+        Reject(() => UpdateClient.ValidateManifest(manifest, new Version(9, 0, 0, 0), asset, UpdateClient.HostYear), "Release tag and manifest must agree");
         string hash = manifest.sha256;
         manifest.sha256 = new string('z', 64);
-        Reject(() => UpdateClient.ValidateManifest(manifest, version, asset, 2024), "Malformed checksums are rejected");
+        Reject(() => UpdateClient.ValidateManifest(manifest, version, asset, UpdateClient.HostYear), "Malformed checksums are rejected");
         manifest.sha256 = hash;
-        Reject(() => UpdateClient.ValidateManifest(manifest, version, null, 2024), "Missing installer cannot trigger an update");
+        Reject(() => UpdateClient.ValidateManifest(manifest, version, null, UpdateClient.HostYear), "Missing installer cannot trigger an update");
         string token = Environment.GetEnvironmentVariable("BIM_UPDATE_TEST_TOKEN");
         if (args.Length > 2 && args[2] == "live")
         {
