@@ -8,7 +8,7 @@ using BIM.Tools.Updates;
 #if CURRENT_VERSION
 [assembly: AssemblyVersion("1.4.3.0")]
 #else
-[assembly: AssemblyVersion("1.4.1.0")]
+[assembly: AssemblyVersion("1.4.2.0")]
 #endif
 
 internal static class UpdateTests
