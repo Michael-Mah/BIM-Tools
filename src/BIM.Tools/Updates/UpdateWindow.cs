@@ -26,6 +26,7 @@ namespace BIM.Tools.Updates
         {
             if (_startup != null) _startup.Dispose();
             UpdateWindow.Close();
+            AboutWindow.Close();
         }
     }
 
@@ -37,12 +38,13 @@ namespace BIM.Tools.Updates
             if (_form == null || _form.IsDisposed) _form = new UpdateForm();
             return _form;
         }
-        internal static void Open()
+        internal static void Open(bool checkNow = false)
         {
             UpdateForm form = Get();
             form.Show();
             form.WindowState = FormWindowState.Normal;
             form.Activate();
+            if (checkNow) form.Check(false);
         }
         internal static void StartAutomatic() { Get().Check(true); }
         internal static void Close() { if (_form != null) _form.Dispose(); _form = null; }

@@ -17,13 +17,33 @@ public sealed class AuditInstalledSmoke : AddInPlugin
             string folder=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"BIM-Tools","FederationBaselines");
             string[] before=Directory.Exists(folder)?Directory.GetFiles(folder):new string[0];
             CommandHandlerPlugin commands=NavisApplication.Plugins.FindPlugin("BIM.Tools.Commands.BIMT").LoadPlugin() as CommandHandlerPlugin;
-            if(commands==null||commands.GetType().Assembly.GetName().Version.ToString()!="1.4.1.0")throw new Exception("Installed command assembly is not 1.4.1.");
-            log.AppendLine("PASS Installed BIM Tools command assembly is 1.4.1");
+            if(commands==null||commands.GetType().Assembly.GetName().Version.ToString()!="1.4.2.0")throw new Exception("Installed command assembly is not 1.4.2.");
+            log.AppendLine("PASS Installed BIM Tools command assembly is 1.4.2");
             EventWatcherPluginRecord updates = NavisApplication.Plugins.FindPlugin("BIM.Tools.Updates.BIMT") as EventWatcherPluginRecord;
             if (updates == null || updates.LoadedPlugin == null) throw new Exception("Update watcher did not load at startup.");
-            if (!commands.CanExecuteCommand("BIM_CHECK_UPDATES").IsEnabled) throw new Exception("Update command is unavailable.");
-            log.AppendLine("PASS Update watcher loads at startup and Check Updates is available");
-            if (commands.ExecuteCommand("BIM_CHECK_UPDATES") != 0) throw new Exception("Update command failed.");
+            if (!commands.CanExecuteCommand("BIM_OPEN_ABOUT").IsEnabled ||
+                commands.CanExecuteCommand("BIM_CHECK_UPDATES").IsVisible)
+                throw new Exception("About must replace the direct update action.");
+            log.AppendLine("PASS Update watcher loads at startup and About replaces the direct update action");
+            if (commands.ExecuteCommand("BIM_OPEN_ABOUT") != 0) throw new Exception("About command failed.");
+            Application.DoEvents();
+            Form about = Application.OpenForms.Cast<Form>().Single(open => open.Text == "About BIM Tools");
+            if (about.Modal || !about.Enabled) throw new Exception("About blocks the host.");
+            if (!Descendants(about).OfType<Label>().Any(label => label.Text.Contains("Version 1.4.2")))
+                throw new Exception("About does not display the installed version.");
+            Button checkUpdates = Descendants(about).OfType<Button>().Single(button => button.Text == "Check for Updates");
+            System.Drawing.Point checkOrigin = about.PointToClient(checkUpdates.PointToScreen(System.Drawing.Point.Empty));
+            if (!about.ClientRectangle.Contains(new System.Drawing.Rectangle(checkOrigin, checkUpdates.Size)))
+                throw new Exception("About update action is clipped.");
+            using (System.Drawing.Bitmap screenshot = new System.Drawing.Bitmap(about.Width, about.Height))
+            {
+                about.DrawToBitmap(screenshot, new System.Drawing.Rectangle(System.Drawing.Point.Empty, about.Size));
+                screenshot.Save(Path.Combine(Path.GetDirectoryName(args[0]), "about-" + typeof(Autodesk.Navisworks.Api.Document).Assembly.GetName().Version.Major + ".png"));
+            }
+            commands.ExecuteCommand("BIM_OPEN_ABOUT");
+            if (Application.OpenForms.Cast<Form>().Count(open => open.Text == "About BIM Tools") != 1)
+                throw new Exception("About command opened duplicate windows.");
+            checkUpdates.PerformClick();
             Application.DoEvents();
             Form updateForm = Application.OpenForms.Cast<Form>().Single(open => open.Text == "BIM Tools · Updates");
             if (updateForm.Modal || !updateForm.Enabled) throw new Exception("Update settings block the host.");
@@ -35,7 +55,8 @@ public sealed class AuditInstalledSmoke : AddInPlugin
                     throw new Exception("Update action is clipped: " + label);
             }
             updateForm.Dispose();
-            log.AppendLine("PASS Check Updates opens modelessly with all actions visible");
+            about.Close();
+            log.AppendLine("PASS About displays the version and opens modeless update checks with all actions visible");
             EventWatcherPluginRecord watcher=NavisApplication.Plugins.FindPlugin("BIM.FederationAudit.Watcher.BIMT") as EventWatcherPluginRecord;
             if(watcher==null||watcher.LoadedPlugin==null)throw new Exception("Installed automatic watcher did not load at startup.");
             log.AppendLine("PASS Installed Federation Audit watcher loads at startup");

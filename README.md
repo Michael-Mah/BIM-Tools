@@ -6,9 +6,9 @@ Download the installer from [latest Releases](https://github.com/Michael-Mah/BIM
 
 ## Updates across computers
 
-Install 1.4.1 once on each computer to enable automatic public update checks. Startup checks run in the background and notify you when a newer stable GitHub Release includes your Navisworks year. GitHub sign-in and tokens are optional. Under **BIM Tools → Check Updates**, you can check manually or disable startup checks. An optional token can increase GitHub API limits and is encrypted locally for the current Windows user.
+Install the latest version once on each computer to enable automatic public update checks. Startup checks run in the background and notify you when a newer stable GitHub Release includes your Navisworks year. GitHub sign-in and tokens are optional. Open **BIM Tools → About** to see the installed version, then choose **Check for Updates** to check manually or change startup checks. An optional token can increase GitHub API limits and is encrypted locally for the current Windows user.
 
-Choose **Download / Install** to download and verify the installer against the release's SHA-256 manifest. The installer waits for you to save your work and close all Navisworks windows, then installs the update. Restart Navisworks afterward. Offline and access errors can be retried through **Check Updates**.
+Choose **Download / Install** to download and verify the installer against the release's SHA-256 manifest. The installer waits for you to save your work and close all Navisworks windows, then installs the update. Restart Navisworks afterward. Offline and access errors can be retried through **About → Check for Updates**.
 
 For every distributable update, increase the assembly, bundle and installer versions, run `Build-Release.ps1`, and publish the generated installer and `update.json` together in a stable GitHub Release. Committing to main alone does not publish an installable update. The update manifest lists only years actually compiled in that build.
 

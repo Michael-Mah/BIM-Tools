@@ -8,6 +8,10 @@ foreach ($root in $RibbonRoots) {
     [xml] $ribbon = Get-Content -LiteralPath (Join-Path $root 'BimToolsRibbon.xaml') -Raw
     $buttons = @($ribbon.SelectNodes('//*[@Image or @LargeImage]'))
     if ($buttons.Count -ne 5) { throw "Expected five tool buttons in $root" }
+    if (@($buttons | Where-Object { $_.Id -eq 'BIM_OPEN_ABOUT' }).Count -ne 1 -or
+        @($buttons | Where-Object { $_.Id -eq 'BIM_CHECK_UPDATES' }).Count -ne 0) {
+        throw "About must replace the standalone update button in $root"
+    }
     $panels = @($ribbon.SelectNodes('//*[local-name()="RibbonPanelSource"]'))
     if ($panels[0].Title -ne 'Health' -or $buttons[0].Id -ne 'BIM_OPEN_FEDERATION_AUDIT') { throw "Federation Audit must be first, under Health: $root" }
     foreach ($button in $buttons) {
