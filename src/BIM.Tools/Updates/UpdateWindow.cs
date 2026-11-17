@@ -59,6 +59,7 @@ namespace BIM.Tools.Updates
         private readonly Button _check, _install;
         private AvailableUpdate _update;
         private bool _working;
+        private UpdateNotice _notice;
 
         internal UpdateForm()
         {
@@ -124,6 +125,7 @@ namespace BIM.Tools.Updates
         {
             if (_working || (automatic && !_settings.Automatic)) return;
             Busy(true);
+            if(_notice!=null&&!_notice.IsDisposed)_notice.Close();
             _update = null;
             try
             {
@@ -141,7 +143,13 @@ namespace BIM.Tools.Updates
                 _status.Text = update == null ? "You have the latest published version."
                     : "Version " + update.Manifest.version + " is available. Download and install it?\r\n\r\n"
                         + "After downloading, save your work and close Navisworks. The installer will wait until Navisworks is closed.";
-                if (update != null && automatic) Show();
+                if(update!=null)
+                {
+                    if(_notice!=null&&!_notice.IsDisposed)_notice.Close();
+                    _notice=new UpdateNotice(UpdateClient.CurrentVersion.ToString(3),update.Manifest.version,delegate
+                    {if(IsDisposed)return;Show();WindowState=FormWindowState.Normal;Activate();Download(this,EventArgs.Empty);});
+                    _notice.Show();_notice.Activate();
+                }
             }
             catch (Exception error)
             {
@@ -174,5 +182,7 @@ namespace BIM.Tools.Updates
             _check.Enabled = _token.Enabled = _automatic.Enabled = !value;
             _install.Enabled = !value && _update != null;
         }
+        protected override void Dispose(bool disposing)
+        {if(disposing&&_notice!=null){_notice.Dispose();_notice=null;}base.Dispose(disposing);}
     }
 }

@@ -1,0 +1,7 @@
+# BIM Tools 1.4.4 — explicit update notices
+
+Both automatic startup checks and manual checks now open the same nonmodal Update available notice when a newer compatible release is found. It displays installed/available versions and Download and install / Later actions. Download uses the existing checksum-verified updater and installer wait-for-close flow. Latest-version checks stay silent automatically and show the latest-version status manually. Starting a new check dismisses stale notices, and unloading disposes the notice.
+
+Matching SDK release builds pass for 2026/2027. 59 inventory checks pass; current/older update manifest tests pass for both hosts (9 checks per run). A WinForms harness verifies the real notice paints, both actions stay in the viewport, it is nonmodal, Later/closing do not invoke the download callback and Download invokes it exactly once. This uses synthetic version labels without downloading or launching an installer from the UI test.
+
+The combined package retains the previously published 1.4.2 components for 2024/2025; those years are not recompiled or eligible for automatic 1.4.4 updates. The 2026/2027 components are 1.4.4. All 80 ribbon references in the combined package pass. The user's open Navisworks project is not closed or overwritten. Users must install 1.4.4 once to receive the new notice behavior on later releases.
